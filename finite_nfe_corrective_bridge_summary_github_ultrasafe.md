@@ -13,7 +13,7 @@ We keep the deployed inference procedure fixed: **uniform-grid Euler with a pres
 We learn an NFE- and context-conditioned residual field:
 
 ```math
-c_\phi(x,t,c,N).
+c_\phi(x_t,t,c,N).
 ```
 
 The deployed dynamics are
