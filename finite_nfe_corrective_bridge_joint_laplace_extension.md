@@ -511,7 +511,7 @@ The extension retains the frozen bridge, unrestricted corrective field, same-noi
 \mathbb E_{c,N}
 \left[
 
-m{MMD}_{k_\sigma}^2
+\rm{MMD}_{k_\sigma}^2
 \left(q_{\phi,c,N},p_c\right)
 \right],
 \qquad \lambda\geq0.
@@ -524,7 +524,7 @@ The conditional distributions are
 \rho_{\phi,c,N}
 =
 
-m{Law}\left(F_\phi^N(Z,c)\mid c,N\right),
+\rm{Law}\left(F_\phi^N(Z,c)\mid c,N\right),
 \qquad
 q_{\phi,c,N}=\Psi_\#\rho_{\phi,c,N},
 \qquad
