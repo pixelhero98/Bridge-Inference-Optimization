@@ -1,4 +1,6 @@
-# Finite-NFE Corrective Bridge: Method Summary
+# Finite-NFE Corrective Bridge: Method Summary and Joint-Laplace Extension
+
+**Scope.** Sections 1–9 retain the original method and its reported empirical findings. Sections 10–15 specify the proposed **single-objective extension**; no experimental results for that extension are available in the supplied material. Section 4 refines the terminal adjoint and distinguishes exact discrete differentiation from a first-order perturbation approximation. The original source file is unchanged.
 
 ## 1. Core idea
 
@@ -66,7 +68,7 @@ For a lower-is-better terminal task loss $`\ell`$, define the paired excess loss
 {\rm sg}\left[\ell(X_0,y)\right].
 ```
 
-Here ${\rm sg}[\cdot]$ denotes stop-gradient.
+Here $`{\rm sg}[\cdot]`$ denotes stop-gradient.
 
 To avoid introducing an additional special-function macro, define the smooth paired penalty explicitly:
 
@@ -181,52 +183,55 @@ The residual field implicitly parameterizes the finite-time map
 F_\phi^N : z \mapsto X_\phi.
 ```
 
-A local correction at step $`k`$ matters only through its effect on terminal utility. Let
+A local correction at step $`k`$ matters through its propagated effect on the terminal objective. For one paired example, the terminal adjoint must differentiate the **actual paired penalty**, not just the underlying task loss:
 
 ```math
-a_N = \nabla_{x_N}\ell
+a_N
+=
+\nabla_{x_N}s_\tau(\Delta_\phi)
+=
+\frac{1}{1+\exp[-(\Delta_\phi+m)/\tau]}
+\nabla_{x_N}\ell(x_N,y).
 ```
 
-be the terminal adjoint. The discrete backward recursion is approximately
+Write $`b_\phi=v_0+c_\phi`$. With full differentiation through the Euler rollout, the discrete backward recursion is **exact**, wherever the derivatives exist:
 
 ```math
 a_k
 =
 \left[
-I
-+
-hJ_x\left(v_0+c_\phi\right)
-\right]^\top
-a_{k+1},
+I+hJ_xb_\phi(x_k,t_k;c,N)
+\right]^\top a_{k+1},
 ```
 
 and the parameter gradient is
 
 ```math
-\nabla_\phi \mathcal{L}
+\nabla_\phi s_\tau(\Delta_\phi)
 =
 \sum_{k=0}^{N-1}
 h
 \left(
-\frac{\partial c_{\phi,k}}{\partial \phi}
-\right)^\top
-a_{k+1}.
+\frac{\partial c_\phi(x_k,t_k,c,N)}{\partial\phi}
+\right)^\top a_{k+1}.
 ```
 
-Thus terminal supervision automatically assigns credit across the whole inference trajectory.
+The partial parameter derivatives above hold the current state fixed. For a batch or ensemble objective, initialize each terminal adjoint from that complete scalar objective, including its reductions and cross-sample dependencies. The same recursion then applies to each rollout.
 
-A first-order endpoint perturbation can also be written as
+Freezing the parameters of $`v_0`$ does **not** remove its state Jacobian. A `no_grad` block is appropriate for the separate frozen-baseline rollout, but not for evaluating $`v_0`$ inside the differentiable corrected rollout.
+
+Separately, a first-order endpoint perturbation about the frozen trajectory $`x_k^0`$ is
 
 ```math
-F_\phi^N(z)-F_0^N(z)
+F_\phi^N(z,c)-F_0^N(z,c)
 \approx
 \sum_{k=0}^{N-1}
 h
-J^{0}_{k+1\to N}
-c_\phi(x_k,t_k,c,N).
+J^0_{k+1\to N}
+c_\phi(x_k^0,t_k,c,N).
 ```
 
-A small local correction can therefore produce a large terminal effect if it acts in a direction with high downstream sensitivity.
+Here $`J^0_{k+1\to N}`$ is the Jacobian of the remaining frozen Euler steps. This is an approximation in correction amplitude, unlike the discrete adjoint above. A small local correction can produce a large terminal effect when downstream sensitivity is high.
 
 ---
 
@@ -366,7 +371,7 @@ Estimating $`\mu_\phi-\mu_0`$ requires both frozen and corrected ensembles, so t
 
 ---
 
-## 7. Current held-out evidence
+## 7. Current held-out evidence: original objective
 
 Normalized composite $`(\mathrm{CRPS}+\mathrm{MAE}+\mathrm{RMSE})/3`$, lower is better:
 
@@ -455,17 +460,13 @@ Because the task metrics are nonlinear, mean and shape effects should not be int
 
 ---
 
-## 9. Final conceptual picture
+## 9. Original method: conceptual picture
 
 The method is not best understood as a numerical corrector.
 
 It is an **NFE-conditioned, terminally supervised corrective transport**:
 
-```math
-{\rm frozen\ bridge}
-\;\longrightarrow\;
-{\rm task\mbox{-}optimal\ finite\mbox{-}NFE\ flow\ map}.
-```
+> Frozen bridge → task-optimal finite-NFE flow map.
 
 Its defining properties are:
 
@@ -486,6 +487,399 @@ to separate learned conditional mean displacement from centered distribution def
 
 ---
 
-## One-paragraph summary
+## Original-method summary
 
 > We post-train a frozen generative bridge by optimizing its deployed finite-NFE flow map through a residual velocity / score field. The inference clock and uniform-Euler solver remain fixed. A same-noise paired terminal objective directly optimizes the realized discrete finite-time operator rather than an ideal continuous-time path. Dense-rollout diagnostics show that the correction primarily learns task-optimal transport rather than numerical-error compensation. A simple counterfactual construction, $`X_{\rm mean}=X_0+(\mu_\phi-\mu_0)`$, preserves the frozen bridge's centered distribution exactly while retaining most of the full model's downstream improvement, indicating that conditional mean displacement is the dominant mechanism. The unrestricted corrective transport gains additional fidelity by deforming the centered distribution, producing the observed fidelity-diversity / coverage trade-off.
+
+---
+
+## 10. Extension: one-stage joint-distribution regularization
+
+The extension retains the frozen bridge, unrestricted corrective field, same-noise pairing, and prescribed uniform-Euler NFE. It changes only terminal supervision:
+
+```math
+\mathcal{J}(\phi)
+=
+\mathcal{L}_{\rm pair}(\phi)
++
+\frac{\lambda}{2}
+\mathbb{E}_{c,N}
+\left[
+{\rm MMD}_{k_\sigma}^2
+\left(q_{\phi,c,N},p_c\right)
+\right],
+\qquad \lambda\geq0.
+```
+
+The conditional distributions are
+
+```math
+\rho_{\phi,c,N}
+=
+{\rm Law}\left(F_\phi^N(Z,c)\mid c,N\right).
+```
+
+```math
+q_{\phi,c,N}=\Psi_\#\rho_{\phi,c,N},
+\qquad
+p_c=\Psi_\#P_{\rm data}(\cdot\mid c).
+```
+
+Here $`\Psi`$ is a fixed feature map applied identically to generated and real outputs; $`\#`$ denotes the induced distribution. Noise and the sampled NFE are independent of the observed future conditional on the context. The NFE therefore does not change the data target $`p_c`$.
+
+The paired term rewards incremental task utility relative to the frozen bridge. The kernel term compares the **conditional joint distribution of forecast features**, rather than their scalarized mean or separately matched marginals. MMD is the kernel discrepancy defined in Section 12 [1].
+
+**One scalar loss, one backward pass, one optimizer.** The coefficient $`\lambda`$ is fixed during a training run, not a dual variable. There is no separate particle-transport stage, frozen transport-target regression, critic, or outer–inner optimization loop. Setting $`\lambda=0`$ recovers the original objective for the same sampling and reduction conventions.
+
+The observed contraction in Sections 7–8 motivates this extension; improved coverage or preserved task performance is a hypothesis to test, not an established result.
+
+---
+
+## 11. Fixed trajectory features and Laplace kernel
+
+### 11.1 Concrete forecasting feature map
+
+For this implementation, assume the terminal forecast is $`x\in\mathbb{R}^{H\times D}`$, with $`H\geq2`$ forecast positions and $`D`$ channels. These are forecast coordinates, **not Euler solver steps**. The original summary does not specify a tensor layout; this layout is an explicit implementation assumption.
+
+Estimate channel-wise standard deviations of levels and signed increments from the training split, apply positive floors, and freeze the resulting scales $`s^{\rm lev},s^{\rm inc}\in\mathbb{R}_{>0}^D`$.
+
+```math
+\Psi(x)
+=
+\left(
+\frac{{\rm vec}(x/s^{\rm lev})}{\sqrt{HD}},
+\frac{{\rm vec}(\Delta x/s^{\rm inc})}{\sqrt{(H-1)D}}
+\right).
+```
+
+The two blocks are concatenated into a single vector, with signed increments
+
+```math
+(\Delta x)_{t,d}=x_{t+1,d}-x_{t,d}.
+```
+
+Division is channel-wise. Ordered levels retain amplitude, timing, and cross-channel information; signed increments increase sensitivity to temporal changes. The block denominators normalize coordinate counts. Because the full level block is retained, this feature map is injective: increments change the comparison geometry, not the available information.
+
+For example, $`(0,1,0)`$ and $`(0,0,1)`$ have the same temporal mean and variance, but different ordered features. Comparing only summary moments would miss that distinction.
+
+Do not normalize each forecast by its own mean or variance. Do not use CRPS/MAE/RMSE against the target as $`\Psi(x)`$: those are reference-dependent task losses, not identically defined features of generated and real trajectories. Keep the existing task-loss implementation, including any ensemble-based CRPS reduction, inside $`\mathcal{L}_{\rm pair}`$.
+
+### 11.2 One kernel on the whole vector
+
+Use the **Euclidean Laplace kernel**:
+
+```math
+k_\sigma(u,v)
+=
+\exp\left(-\frac{\|u-v\|_2}{\sigma}\right),
+\qquad \sigma>0.
+```
+
+The Euclidean distance is not squared. This kernel is characteristic; zero population MMD identifies the joint feature distribution [3]. With the injective feature map above, equality of feature distributions also identifies the full forecast distribution. This population statement does not guarantee finite-sample sensitivity to every dependence pattern.
+
+Use a single kernel on the concatenated vector, rather than a sum of independent coordinate-wise kernels. Feature scales and bandwidth still define a fixed geometry; the method is not free of weighting choices.
+
+**Suggested initialization.** Set $`\sigma`$ to the median nonzero generated–real feature distance on a fixed training calibration batch from the frozen bridge, always pairing forecasts with their own context's target. Then freeze it. This is a proposed heuristic, not a derived optimum. If all distances vanish, select and record a positive fallback bandwidth rather than using zero.
+
+---
+
+## 12. Conditional kernel score and the implemented objective
+
+For each training pair $`(c_b,y_b)`$ and sampled $`N_b`$, draw $`K\geq2`$ independent noises. Define
+
+```math
+X_{bi}=F_\phi^{N_b}(z_{bi},c_b),
+\qquad
+X^0_{bi}=F_0^{N_b}(z_{bi},c_b).
+```
+
+```math
+u_{bi}=\Psi(X_{bi}),
+\qquad
+v_b=\Psi(y_b).
+```
+
+The frozen and corrected ensembles use the same noises. The $`K`$ generated samples within a kernel-score group share the same context and NFE.
+
+The population discrepancy has the expansion [1]
+
+```math
+{\rm MMD}_{k_\sigma}^2(q,p)
+=
+\mathbb{E}_{U,U'\sim q}k_\sigma(U,U')
+-2\mathbb{E}_{U\sim q,V\sim p}k_\sigma(U,V)
++\mathbb{E}_{V,V'\sim p}k_\sigma(V,V'),
+```
+
+where the draws in each expectation are independent. With one observed future per context, compute the half-scaled kernel score [2]:
+
+```math
+\widehat S_b
+=
+\frac{1}{2K(K-1)}
+\sum_{i\ne j}k_\sigma(u_{bi},u_{bj})
+-
+\frac{1}{K}\sum_i k_\sigma(u_{bi},v_b).
+```
+
+The generated–real term encourages similarity to observations. The generated–generated term penalizes excessive similarity within the predictive ensemble. Dropping that term leaves an attraction objective, not distribution matching.
+
+By expanding the expectations,
+
+```math
+\mathbb{E}_{Y_b,Z_{b1:K}\mid c_b,N_b}[\widehat S_b]
+=
+\frac{1}{2}{\rm MMD}_{k_\sigma}^2
+(q_{\phi,c_b,N_b},p_{c_b})
+-
+C(p_{c_b}),
+```
+
+```math
+C(p_c)
+=
+\frac{1}{2}\mathbb{E}_{V,V'\sim p_c}k_\sigma(V,V').
+```
+
+The omitted term is independent of $`\phi`$. Therefore, the actual minibatch loss is
+
+```math
+\widehat{\mathcal{J}}
+=
+\widehat{\mathcal{L}}_{\rm pair}
++
+\frac{\lambda}{B}\sum_{b=1}^B\widehat S_b.
+```
+
+Keep the existing paired penalty, metric normalizations, and sample/ensemble reductions unchanged. Add the kernel score **outside** the paired softplus. Do not put it inside $`\ell`$, transform it through another softplus, or differentiate through only one generated argument of the pairwise kernel.
+
+One real future per context suffices to estimate the population scoring objective across context–outcome pairs [2]; it does not identify each conditional law from one observation. Generalization to held-out contexts remains necessary.
+
+**Estimator details.** Exclude generated self-pairs and use $`K(K-1)`$, not $`K^2`$. Compute scores within context and NFE, then average. Do not pool unrelated contexts or NFEs into one predictive ensemble. The score may be negative because the real–real constant is omitted; do not clamp it to zero or report it as an absolute MMD value.
+
+---
+
+## 13. Terminal credit assignment and the WGF interpretation
+
+### 13.1 The combined terminal gradient
+
+For the batch loss above, initialize each endpoint adjoint as
+
+```math
+a_{N_b,bi}
+=
+\nabla_{X_{bi}}\widehat{\mathcal{L}}_{\rm pair}
++
+\frac{\lambda}{B}\nabla_{X_{bi}}\widehat S_b.
+```
+
+Both contributions backpropagate through the same Euler recursion from Section 4. With $`h_b=1/N_b`$,
+
+```math
+\nabla_\phi\widehat{\mathcal{J}}
+=
+\sum_{b,i}\sum_{k=0}^{N_b-1}
+h_b
+\left(
+\frac{\partial c_\phi(x_{k,bi},t_k,c_b,N_b)}{\partial\phi}
+\right)^\top a_{k+1,bi}.
+```
+
+All batch and ensemble weights are already included in the terminal adjoints. There is no additional gradient normalization after this sum.
+
+### 13.2 What is Wasserstein-inspired
+
+Fix $`c,N`$ and write $`q=\Psi_\#\rho`$. For the kernel component alone, define
+
+```math
+\mathcal{E}(\rho)
+=
+\frac{1}{2}{\rm MMD}_{k_\sigma}^2(\Psi_\#\rho,p).
+```
+
+```math
+g_q(u)
+=
+\mathbb{E}_{U\sim q}k_\sigma(u,U)
+-
+\mathbb{E}_{V\sim p}k_\sigma(u,V).
+```
+
+Where the derivatives are defined, its formal state-space transport direction is
+
+```math
+V_\rho^{\rm ker}(x)
+=
+-\nabla_x\frac{\delta\mathcal{E}}{\delta\rho}(x)
+=
+-J_\Psi(x)^\top\nabla_u g_q(\Psi(x)).
+```
+
+For sufficiently regular kernels and measures, the corresponding continuity equation in **optimization time** $`s`$ is the MMD Wasserstein gradient flow [4]:
+
+```math
+\partial_s\rho_s
++
+\nabla_x\!\cdot
+\left(\rho_s V_{\rho_s}^{\rm ker}\right)
+=0.
+```
+
+This geometry is in terminal state space. Feature motion is preconditioned by $`J_\Psi J_\Psi^\top`$; it is generally not Euclidean Wasserstein flow in feature space. Optimization time $`s`$ is distinct from inference time $`t_k=k/N`$.
+
+The empirical terminal direction is already present in the single loss:
+
+```math
+\widehat V_{bi}^{\rm ker}
+=
+-K\nabla_{X_{bi}}\widehat S_b.
+```
+
+```math
+a_{N_b,bi}
+=
+\nabla_{X_{bi}}\widehat{\mathcal{L}}_{\rm pair}
+-
+\frac{\lambda}{BK}\widehat V_{bi}^{\rm ker}.
+```
+
+These equations explain the gradient; **the implementation does not explicitly construct transport targets**.
+
+### 13.3 Limits of the interpretation
+
+**Parameter optimization is not exact WGF.** The endpoint Jacobian and optimizer determine which terminal displacements the corrective field realizes. Ordinary AdamW is not a Wasserstein natural-gradient method, and the inference drift need not equal $`V_\rho^{\rm ker}`$.
+
+**The full paired objective is coupling-dependent.** Because the same-noise baseline appears inside a nonlinear paired penalty, two operators with the same corrected terminal distribution can have different paired losses. Thus the full $`\mathcal{J}`$ is not generally a functional of the corrected terminal marginal alone. The density-level WGF interpretation applies to the kernel component, not automatically to the combined objective.
+
+**Laplace is nonsmooth at coincidence.** The reference implementation selects zero norm gradient when feature vectors coincide. Exact duplicates therefore do not automatically separate. The smooth-kernel assumptions of [4] do not hold globally for the exact Laplace kernel; no classical-flow existence or convergence theorem is claimed here.
+
+**The local generator is not the finite-time map.** The drift $`b_\phi=v_0+c_\phi`$ induces the differential operator $`f\mapsto b_\phi\cdot\nabla f`$ for the formal continuous dynamics. The deployed $`F_\phi^N`$ remains the finite composition of Euler steps. We optimize that composition, not an exact exponential of a time-independent generator.
+
+The precise description is:
+
+> **Single-objective, joint-distribution-regularized finite-NFE corrective transport, with an MMD-Wasserstein terminal-gradient interpretation.**
+
+---
+
+## 14. Reference implementation: one loss and one update
+
+The loss function below is self-contained. `rollout_base`, `rollout_corrected`, and `existing_paired_objective` are integration points: their implementations were not included in the supplied summary.
+
+```python
+import math
+import torch
+from torch import Tensor
+
+
+def laplace_scores(
+    x: Tensor,
+    y: Tensor,
+    s_level: Tensor,
+    s_inc: Tensor,
+    sigma: float,
+) -> Tensor:
+    """x [B,K,H,D], y [B,H,D], frozen scales [D]; returns scores [B]."""
+    if x.ndim != 4:
+        raise ValueError("Expected x with shape [B,K,H,D].")
+    B, K, H, D = x.shape
+    if B < 1 or K < 2 or H < 2 or D < 1 or y.shape != (B, H, D):
+        raise ValueError("Require B,D >= 1, K,H >= 2 and y [B,H,D].")
+    if not x.is_floating_point() or not math.isfinite(sigma) or sigma <= 0:
+        raise ValueError("Require floating-point x and finite sigma > 0.")
+
+    # Use float32 for low-precision rollouts; preserve float64 for testing.
+    dtype = torch.float64 if x.dtype == torch.float64 else torch.float32
+    x = x.to(dtype=dtype)  # This cast preserves gradients to the rollout.
+    y = y.detach().to(device=x.device, dtype=dtype)
+    scales = []
+    for scale in (s_level, s_inc):
+        scale = scale.detach().to(device=x.device, dtype=dtype)
+        if scale.shape != (D,) or not bool(
+            (torch.isfinite(scale) & (scale > 0)).all()
+        ):
+            raise ValueError("Scales must be finite, positive tensors [D].")
+        scales.append(scale)
+    sl, si = scales
+
+    def features(a: Tensor) -> Tensor:
+        level = (a / sl).flatten(-2) / math.sqrt(H * D)
+        inc = ((a[..., 1:, :] - a[..., :-1, :]) / si).flatten(-2)
+        inc = inc / math.sqrt((H - 1) * D)
+        return torch.cat((level, inc), dim=-1)
+
+    u, v = features(x), features(y)
+    i, j = torch.triu_indices(K, K, offset=1, device=x.device)
+    d_xx = torch.linalg.vector_norm(u[:, i] - u[:, j], dim=-1)
+    d_xy = torch.linalg.vector_norm(u - v[:, None], dim=-1)
+
+    # Unique off-diagonal pairs: 0.5 * their mean equals the stated U-statistic.
+    generated = 0.5 * torch.exp(-d_xx / sigma).mean(dim=-1)
+    observed = torch.exp(-d_xy / sigma).mean(dim=-1)
+    return generated - observed
+```
+
+For one NFE per minibatch, integrate it as follows:
+
+```python
+# z contains K independent noises per context; x and x0 have shape [B,K,H,D].
+# Freeze v0's parameters once, but retain input derivatives in corrected rollouts.
+with torch.no_grad():
+    x0 = rollout_base(z, c, N)
+
+x = rollout_corrected(z, c, N)
+loss_pair = existing_paired_objective(x, x0, y)  # Preserve existing reductions.
+loss_joint = laplace_scores(x, y, s_level, s_inc, sigma).mean()
+loss = loss_pair + lambda_joint * loss_joint  # Fixed lambda_joint >= 0.
+
+optimizer.zero_grad(set_to_none=True)
+loss.backward()
+optimizer.step()
+```
+
+For mixed NFEs, compute each context–NFE score within its own group and average using the intended training weights before the same backward pass. Do not detach corrected endpoints or either generated argument of the pairwise kernel.
+
+This code uses the exact stated Laplace kernel; it does not silently square or smooth the distance. Pairwise feature computation costs $`O(BK^2M)`$ for $`M=D(2H-1)`$. For large forecasts, compute pair distances in blocks while retaining the same sums and denominators. Increasing $`K`$ adds training rollouts; **one optimization process does not mean unchanged training cost**. Deployment retains the prescribed $`N`$ and uses no reference targets or kernel evaluation.
+
+---
+
+## 15. Validation and claims to retain
+
+Choose $`\lambda`$ on a validation split and keep it fixed within each run. Do not equate raw loss magnitudes: the kernel score includes an omitted constant, and its gradient scale depends on the feature scales and bandwidth. Keep those fixed across compared models.
+
+The minimum evaluation compares the original paired-only objective ($`\lambda=0`$) with the combined objective under matched architecture, NFE sampling, generated-trajectory budget, and checkpoint-selection rules. Retain the original mean-displacement counterfactual. Re-evaluate the existing task metrics, coverage, spread, pairwise diversity, and effective rank, alongside held-out kernel-score differences. Report the seen, interpolation, and extrapolation NFE regimes separately; check sensitivity to $`K`$, $`\lambda`$, and $`\sigma`$.
+
+A held-out comparison against the frozen bridge can use
+
+```math
+\widehat{\Delta S}
+=
+\frac{1}{B}\sum_b
+\left[
+\widehat S_b(F_\phi^{N_b})
+-
+\widehat S_b(F_0^{N_b})
+\right].
+```
+
+With the same fixed kernel and features, its expectation is half the difference between the corresponding conditional squared MMDs: the real–real constants cancel. Negative values favor the corrected model. Reusing contexts, targets, and noise improves comparability without changing this expectation. Subtracting a detached reference score is optional for logging and is not required in the training loss.
+
+**Interpretation limits.** The kernel score alone is a proper distributional objective for the fixed characteristic kernel [2,3]. Adding the paired task term does not make the full objective proper, impose a hard performance constraint, or guarantee exact data matching. The scalar $`\lambda`$ trades task utility against joint-distribution agreement. It does not remove conflicts among task metrics. Population identifiability does not rule out finite-data overfitting, restricted model capacity, or optimization failure.
+
+The included loss implementation passed explicit pairwise value/gradient comparisons, numerical gradient checks away from coincidences, duplicate-sample and low-precision checks, and input-validation tests. A synthetic linear Euler system also verified the combined gradient, the discrete adjoint, and the $`\lambda=0`$ reduction. These checks validate the reference implementation and differentiation, not the untested empirical benefits of the extension.
+
+## Extension summary
+
+> We extend the paired finite-NFE corrective bridge with a conditional Laplace kernel score on fixed, ordered forecast levels and signed increments. Its expectation equals half the squared MMD between generated and real joint-feature distributions, up to a parameter-independent constant. Adding this score outside the existing paired penalty produces one differentiable objective and one optimizer update. Both terminal signals train the same local corrective field through the deployed Euler rollout. The kernel term provides an MMD-Wasserstein transport interpretation, while the complete method remains parameter-space optimization of a coupling-dependent finite-NFE objective. Improved calibration and retained task gains require new held-out experiments.
+
+## References and provenance
+
+**Original source.** `finite_nfe_corrective_bridge_summary_github_ultrasafe(2).md`, supplied by the user. All reported empirical values and original mechanism claims are retained from that source; they were not independently re-evaluated. The feature design, combined objective, implementation, and evaluation protocol in Sections 10–15 are the proposed extension developed in this discussion.
+
+[1] Gretton et al. (2012). *A Kernel Two-Sample Test*. Journal of Machine Learning Research, 13:723–773. https://www.jmlr.org/papers/v13/gretton12a.html
+
+[2] Pacchiardi et al. (2024). *Probabilistic Forecasting with Generative Networks via Scoring Rule Minimization*. Journal of Machine Learning Research, 25(45):1–64. Sections 2.2 and Appendix C.1.2 support conditional kernel-score training and its unbiased estimator. https://jmlr.org/papers/v25/23-0038.html
+
+[3] Sriperumbudur, Fukumizu, and Lanckriet (2011). *Universality, Characteristic Kernels and RKHS Embedding of Measures*. Journal of Machine Learning Research, 12:2389–2410. https://www.jmlr.org/papers/v12/sriperumbudur11a.html
+
+[4] Arbel, Korba, Salim, and Gretton (2019). *Maximum Mean Discrepancy Gradient Flow*. NeurIPS. The smooth-kernel theory motivates the transport interpretation but is not a convergence theorem for the exact Laplace implementation above. https://arxiv.org/abs/1906.04370
+
