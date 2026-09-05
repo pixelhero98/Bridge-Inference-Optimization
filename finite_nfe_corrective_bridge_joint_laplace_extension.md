@@ -510,7 +510,8 @@ The extension retains the frozen bridge, unrestricted corrective field, same-noi
 \frac{\lambda}{2}
 \mathbb E_{c,N}
 \left[
-\operatorname{MMD}_{k_\sigma}^2
+
+m{MMD}_{k_\sigma}^2
 \left(q_{\phi,c,N},p_c\right)
 \right],
 \qquad \lambda\geq0.
@@ -522,7 +523,8 @@ The conditional distributions are
 ```math
 \rho_{\phi,c,N}
 =
-\operatorname{Law}\left(F_\phi^N(Z,c)\mid c,N\right),
+
+m{Law}\left(F_\phi^N(Z,c)\mid c,N\right),
 \qquad
 q_{\phi,c,N}=\Psi_\#\rho_{\phi,c,N},
 \qquad
@@ -553,10 +555,12 @@ Estimate channel-wise standard deviations of levels and signed increments from t
 =
 \begin{bmatrix}
 \displaystyle
-\frac{\operatorname{vec}(x/s^{\rm lev})}{\sqrt{HD}}
+\frac{
+m{vec}(x/s^{\rm lev})}{\sqrt{HD}}
 \\[6pt]
 \displaystyle
-\frac{\operatorname{vec}(\Delta x/s^{\rm inc})}
+\frac{
+m{vec}(\Delta x/s^{\rm inc})}
 {\sqrt{(H-1)D}}
 \end{bmatrix},
 \qquad
@@ -610,7 +614,8 @@ The frozen and corrected ensembles use the same noises. The $`K`$ generated samp
 The population discrepancy has the expansion [1]
 
 ```math
-\operatorname{MMD}_{k_\sigma}^2(q,p)
+
+m{MMD}_{k_\sigma}^2(q,p)
 =
 \mathbb E_{U,U'\sim q}k_\sigma(U,U')
 -2\mathbb E_{U\sim q,V\sim p}k_\sigma(U,V)
@@ -637,7 +642,8 @@ By expanding the expectations,
 ```math
 \mathbb E_{Y_b,Z_{b1:K}\mid c_b,N_b}[\widehat S_b]
 =
-\frac12\operatorname{MMD}_{k_\sigma}^2
+\frac12
+m{MMD}_{k_\sigma}^2
 (q_{\phi,c_b,N_b},p_{c_b})
 -
 C(p_{c_b}),
@@ -706,7 +712,8 @@ Fix $`c,N`$ and write $`q=\Psi_\#\rho`$. For the kernel component alone, define
 ```math
 \mathcal E(\rho)
 =
-\frac12\operatorname{MMD}_{k_\sigma}^2(\Psi_\#\rho,p),
+\frac12
+m{MMD}_{k_\sigma}^2(\Psi_\#\rho,p),
 \qquad
 g_q(u)
 =
