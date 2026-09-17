@@ -15,7 +15,6 @@ and feature-kernel scores worsen. Early validation favors Softplus, so this is
 not evidence of uniformly faster convergence. GPU time is not matched to the
 previous corrector-only Flow-GRPO reference.
 
-The note defines the exact loss signs, derivatives, and baseline cancellation
-for Linear. Softplus attenuates gradients after improvement over the baseline;
+The note provides the loss formulas, results, and findings. Softplus attenuates gradients after improvement over the baseline;
 it is not a KL penalty or trust-region constraint. A Softplus + Linear hybrid is
 described as an **untested candidate**, not a completed SeedVR experiment.
