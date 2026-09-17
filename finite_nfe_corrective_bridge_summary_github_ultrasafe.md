@@ -1,5 +1,7 @@
 # Finite-NFE Corrective Bridge: Method Summary and Joint-Laplace Extension
 
+> **SeedVR update (2026-09-17):** [Reward-gradient saturation ablation: Softplus vs Linear](seedvr_reward_parameterization.md) records the exact reward-term formulas, completed matched-update/sample results, and quality/cost trade-offs. The current reward-term options are Softplus and Linear; a Softplus + Linear hybrid remains untested in this comparison. This separate SeedVR pilot does not establish the forecasting claims or proposed extension below.
+
 **Scope.** Sections 1–9 retain the original method and its reported empirical findings. Sections 10–15 specify the proposed **single-objective extension**; no experimental results for that extension are available in the supplied material. Section 4 refines the terminal adjoint and distinguishes exact discrete differentiation from a first-order perturbation approximation. The original source file is unchanged.
 
 ## 1. Core idea
@@ -882,4 +884,3 @@ The included loss implementation passed explicit pairwise value/gradient compari
 [3] Sriperumbudur, Fukumizu, and Lanckriet (2011). *Universality, Characteristic Kernels and RKHS Embedding of Measures*. Journal of Machine Learning Research, 12:2389–2410. https://www.jmlr.org/papers/v12/sriperumbudur11a.html
 
 [4] Arbel, Korba, Salim, and Gretton (2019). *Maximum Mean Discrepancy Gradient Flow*. NeurIPS. The smooth-kernel theory motivates the transport interpretation but is not a convergence theorem for the exact Laplace implementation above. https://arxiv.org/abs/1906.04370
-

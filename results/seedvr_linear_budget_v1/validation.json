@@ -1,0 +1,56 @@
+{
+  "linear": [
+    {
+      "optimizer_updates": 50,
+      "mean_restoration_advantage": 0.22667639330029488
+    },
+    {
+      "optimizer_updates": 100,
+      "mean_restoration_advantage": 0.369632750749588
+    },
+    {
+      "optimizer_updates": 150,
+      "mean_restoration_advantage": 0.3776310542598367
+    },
+    {
+      "optimizer_updates": 200,
+      "mean_restoration_advantage": 0.4450838277116418
+    }
+  ],
+  "softplus_control": [
+    {
+      "optimizer_updates": 50,
+      "mean_restoration_advantage": 0.3247418748214841
+    },
+    {
+      "optimizer_updates": 100,
+      "mean_restoration_advantage": 0.24257014645263553
+    },
+    {
+      "optimizer_updates": 150,
+      "mean_restoration_advantage": 0.32818949804641306
+    },
+    {
+      "optimizer_updates": 200,
+      "mean_restoration_advantage": 0.3770184740424156
+    }
+  ],
+  "flow_grpo_reference": [
+    {
+      "optimizer_updates": 50,
+      "mean_restoration_advantage": -0.09553155850153416
+    },
+    {
+      "optimizer_updates": 100,
+      "mean_restoration_advantage": -0.05266647948883474
+    },
+    {
+      "optimizer_updates": 150,
+      "mean_restoration_advantage": -0.1470163378980942
+    },
+    {
+      "optimizer_updates": 200,
+      "mean_restoration_advantage": -0.029745308158453554
+    }
+  ]
+}
