@@ -1,5 +1,7 @@
 # 图像生成与恢复方法：Metrics、Reward 设计与 Corrective Field 注意事项
 
+> **2026-09-17：SeedVR 参数化说明。** 当前保留 Softplus 与 Linear 两种 reward-term 选项；[完整公式、梯度解释和已完成结果](seedvr_reward_parameterization.md)。本次 SeedVR 最小化的是 `tau * softplus(-A / tau)` 或 `-0.5 * A`。本文历史 I²SB 等段落中的 `-tau * softplus(A / tau)` 是另一种目标，不能视为等价写法或用于解释 SeedVR 的梯度饱和。
+
 ## 技术摘要
 
 - **论文指标不等于训练 reward。** FID、KID、FVD 等依赖样本集合的分布指标适合做最终评估或退化 guardrail，通常不适合作为逐样本、可微的训练 reward。
@@ -41,8 +43,12 @@
 ```text
 a[j,K] = (r_corrected[j] - stop_gradient(r_base[j])) / max(s[j,K], eps)
 A       = sum_j weight[j] * a[j,K]
-loss    = -tau * softplus(A / tau)
+# SeedVR 当前两种选择，均最小化 loss：
+loss_softplus = tau * softplus(-A / tau)
+loss_linear   = -0.5 * A
 ```
+
+这里 A>0 表示优于 base。Softplus 的导数是 `-sigmoid(-A/tau)`，在正 advantage 增大时衰减；Linear 的导数固定为 −0.5，两者在 A=0 匹配。旧版通用示例写作 `-tau * softplus(A/tau)`，其导数是 `-sigmoid(A/tau)`，行为不同；下文其他模型的历史公式和报告不因此被改写或重新归类。Softplus 不显式约束输出或分布距离，不能直接称为 KL 正则或信赖域约束。
 
 尺度文件应记录 estimator、样本数和分位数。遇到 floor、饱和或长尾时，不能机械使用 MAD；应检查直方图、floor rate、P1/P99、MAD、标准差及 winsorized 标准差后再选择 estimator。尺度和权重一旦确定，不得根据测试结果调整。
 
