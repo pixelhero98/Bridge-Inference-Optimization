@@ -29,7 +29,7 @@ residual 不再乘 $\Delta t$。base 参数冻结，但保留其对当前状态�
 
 $$
 A_d=\frac{\mathrm{PickScore}_{\mathrm{corrected},d}/26
--\operatorname{detach}(\mathrm{PickScore}_{\mathrm{K8\ base},d}/26)}
+-\mathrm{detach}(\mathrm{PickScore}_{\mathrm{K8\ base},d}/26)}
 {0.05780823156237602}.
 $$
 
@@ -37,14 +37,14 @@ baseline 与尺度均冻结；先对同一 context 的 draws 求平均，再对 
 
 | Reward loss 形式 | 公式 |
 |---|---|
-| 纯 softplus | $-\operatorname{mean}_d[\tau\,\mathrm{softplus}(A_d/\tau)]$ |
-| softplus + linear advantage | $-\operatorname{mean}_d[(1-\alpha)\tau\,\mathrm{softplus}(A_d/\tau)+\alpha A_d]$ |
-| 负 advantage 的 softplus | $\operatorname{mean}_d[\tau\,\mathrm{softplus}(-A_d/\tau)]$ |
+| 纯 softplus | $-\mathrm{mean}_d[\tau\,\mathrm{softplus}(A_d/\tau)]$ |
+| softplus + linear advantage | $-\mathrm{mean}_d[(1-\alpha)\tau\,\mathrm{softplus}(A_d/\tau)+\alpha A_d]$ |
+| 负 advantage 的 softplus | $\mathrm{mean}_d[\tau\,\mathrm{softplus}(-A_d/\tau)]$ |
 
 **E 及其 reward 微调使用以下 reward loss：softplus 内为 $-A/\tau$，外层为正，$\tau=0.15$，没有 linear advantage 项。**
 
 $$
-L_{\mathrm{reward}}=\operatorname{mean}_d\left[
+L_{\mathrm{reward}}=\mathrm{mean}_d\left[
 \tau\,\mathrm{softplus}\left(-\frac{A_d}{\tau}\right)\right],\qquad \tau=0.15.
 $$
 
@@ -86,7 +86,7 @@ $$
 其中 $z_{\mathrm{GT}}$ 为 clean GT latent。这使 GT target 与 corrected 中间状态处于同一噪声时间，并保持 draw 配对。只加入 latent attraction：
 
 $$
-T_{\mathrm{GT}}=\operatorname{mean}_d
+T_{\mathrm{GT}}=\mathrm{mean}_d
 k_{h_{\mathrm{latent}}}(z_{\mathrm{corrected},0.75,d},z_{\mathrm{GT},0.75,d}).
 $$
 
@@ -128,7 +128,7 @@ $$
 无上限 reward 强度扫描在固定的 E checkpoint 上，以 32 个训练 minibatch 校准：
 
 $$
-q=\operatorname{median}_{b=1}^{32}
+q=\mathrm{median}_{b=1}^{32}
 \frac{\|g_{R,b}\|_2}{\|g_{\mathrm{matching},b}\|_2},
 \qquad
 \lambda_R^\ast=\frac{r}{q},\qquad r\in\{0.1,0.3,1.0\}.
