@@ -27,7 +27,7 @@ The completed synthetic diagnostic is E0's gradient-correctness component, not E
   adapted to SiT; optional DMD2-style adaptation. Use ImageNet-256 reference statistics
   and separate validation tuning. Report FID50K, precision/recall, class accuracy and IS.
 - **E2:** frozen same-budget generator; utility-only full rollout; matching-only;
-  joint FCT; Flow-GRPO comparison. Use full GenEval and disjoint held-out prompts;
+  joint FCT; Flow-GRPO / lambda Flow-GRPO comparison. Use full GenEval and disjoint held-out prompts;
   report unoptimized preference, human preference, within-prompt diversity and latency.
 - **E3:** frozen N/N_T; AC-DMD, RTDMD, DP-DMD and paired regression comparisons subject
   to a compatible backbone/operator audit. Compare matching-only continuation,
