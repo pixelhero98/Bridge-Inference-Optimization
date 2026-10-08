@@ -1,0 +1,116 @@
+{
+  "files": [
+    {
+      "original_path": ".DS_Store",
+      "archive_path": "legacy/pre-canonical/.DS_Store",
+      "sha256": "204cdda2033253924a015fe66e5dfeb5f8ed44f3f01ad1a0818fa32d1f72eb7d"
+    },
+    {
+      "original_path": ".gitignore",
+      "archive_path": "legacy/pre-canonical/.gitignore",
+      "sha256": "ff0570e9f5ff6f5e47866c034a36c8517eebed313b4c28168283721b5b0c0fc6"
+    },
+    {
+      "original_path": "README.md",
+      "archive_path": "legacy/pre-canonical/README.md",
+      "sha256": "213400182adc3a9496dac8e1b22a03a363540694f0b0ea5755a5ee195d4db979"
+    },
+    {
+      "original_path": "finite_nfe_corrective_bridge_summary_github_ultrasafe.md",
+      "archive_path": "legacy/pre-canonical/finite_nfe_corrective_bridge_summary_github_ultrasafe.md",
+      "sha256": "e6086caf861eebeadbcdbcb4dd87392b2d29a7f273ab1cf1a0e8b65136dd43cc",
+      "original_sha256": "3660c652daea49d4fd424245c92f4b818c3c6bb374bc5ed2447074660f63096e",
+      "edit": "Removed the SeedVR update paragraph and link to the deleted report."
+    },
+    {
+      "original_path": "pyproject.toml",
+      "archive_path": "legacy/pre-canonical/pyproject.toml",
+      "sha256": "329d9a8251a2ab87300f3c36d3297b88fa37d51e853794898fc64300f9dfe09c"
+    },
+    {
+      "original_path": "results/seedvr_linear_budget_v1/comparison.png",
+      "archive_path": "legacy/pre-canonical/results/seedvr_linear_budget_v1/comparison.png",
+      "sha256": "0a63b4619f9676bbc232082c735d5753bef24eda715966f4d85a51b2895ec849"
+    },
+    {
+      "original_path": "results/seedvr_linear_budget_v1/metrics.json",
+      "archive_path": "legacy/pre-canonical/results/seedvr_linear_budget_v1/metrics.json",
+      "sha256": "e09c759f672d58869c420ffd6ccf159b568f789cf36cfca9ee513b41152e3cee"
+    },
+    {
+      "original_path": "results/seedvr_linear_budget_v1/validation.json",
+      "archive_path": "legacy/pre-canonical/results/seedvr_linear_budget_v1/validation.json",
+      "sha256": "0d2296f10417321769b26b43dbe6d0d4e57da045be250796ba6297664fbf7009"
+    },
+    {
+      "original_path": "results/seedvr_linear_budget_v1/validation_curves.png",
+      "archive_path": "legacy/pre-canonical/results/seedvr_linear_budget_v1/validation_curves.png",
+      "sha256": "8c8434583274cd1ac9f4827c98cd0bded7e4b0cd1a26c86f81fc6d77c075efa5"
+    },
+    {
+      "original_path": "src/.DS_Store",
+      "archive_path": "legacy/pre-canonical/src/.DS_Store",
+      "sha256": "e47c70ea07f7afd55be8775aa78524d544f9e5c2c4faf4f32bc7468fd57c3992"
+    },
+    {
+      "original_path": "src/README.md",
+      "archive_path": "legacy/pre-canonical/src/README.md",
+      "sha256": "bed1dfadbcfa71647300edffad3f894b9a9dd97ab7d87ed80714c49ca6ed0f1b"
+    },
+    {
+      "original_path": "src/__init__.py",
+      "archive_path": "legacy/pre-canonical/src/__init__.py",
+      "sha256": "3b4079de53870306b931be96f05589c5c8716150ed187554436d90cb32f046e5"
+    },
+    {
+      "original_path": "src/checkpoint.py",
+      "archive_path": "legacy/pre-canonical/src/checkpoint.py",
+      "sha256": "fc24cab0c519a07b328c4edc2eb67887c10bc1cfd2b71f948dccb6b1b392884e"
+    },
+    {
+      "original_path": "src/dit.py",
+      "archive_path": "legacy/pre-canonical/src/dit.py",
+      "sha256": "f27712dc03d75d906de3c73456d6b574502e2433b1f7b995eea36046fb59a5fe"
+    },
+    {
+      "original_path": "src/noise.py",
+      "archive_path": "legacy/pre-canonical/src/noise.py",
+      "sha256": "fb69ef68eeefabdc094880f24d8d341f2dcfb532fae5b67a724868c48b5d261f"
+    },
+    {
+      "original_path": "src/objectives.py",
+      "archive_path": "legacy/pre-canonical/src/objectives.py",
+      "sha256": "c738f098face6b11fd3c0235ecffc739205b320ae34c28cdf9c0803e48b2b34c"
+    },
+    {
+      "original_path": "src/precision.py",
+      "archive_path": "legacy/pre-canonical/src/precision.py",
+      "sha256": "4c0a884135341b5d2f55bb7ad0fa357b5178df1407cd24af9e732976c4be7033"
+    },
+    {
+      "original_path": "src/rollout.py",
+      "archive_path": "legacy/pre-canonical/src/rollout.py",
+      "sha256": "c72d4c0d71ba88ab2ec30e7359d2283e70b46de2539e72b0577c18047dc649a9"
+    },
+    {
+      "original_path": "src/training.py",
+      "archive_path": "legacy/pre-canonical/src/training.py",
+      "sha256": "5b4257a69c22e533e63a842a7d4a391ec0216e23cbbe80fc1d458695e0223a1a"
+    }
+  ],
+  "source_commit": "35c0e1b5a0a32c39c27e1de4b608f44e36a2c8ae",
+  "removed_files": [
+    {
+      "original_path": "method_reward_guide.md",
+      "archive_path": "legacy/pre-canonical/method_reward_guide.md",
+      "sha256": "cafd17d4ec6a9ff9028c8b7375d6e884151e324e6abb8c315bdfb60de7f8484f",
+      "reason": "User-requested removal of SeedVR-related Markdown on 2026-10-07"
+    },
+    {
+      "original_path": "seedvr_reward_parameterization.md",
+      "archive_path": "legacy/pre-canonical/seedvr_reward_parameterization.md",
+      "sha256": "b18d0277d50773bc7ee4830a0c6370ca7eb0bfd28ee73aae1e6aad2d88d592f4",
+      "reason": "User-requested removal of SeedVR-related Markdown on 2026-10-07"
+    }
+  ]
+}

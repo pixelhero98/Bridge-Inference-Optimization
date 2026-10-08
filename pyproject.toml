@@ -1,15 +1,27 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bridge-optimization"
-version = "0.1.0"
-description = "FP32 step-residual corrective optimization and finite-step operator distillation"
-readme = "src/README.md"
+name = "finite-time-corrective-transport"
+version = "0.2.0"
+description = "Uniform-Euler corrective transport with conditional multi-space kernel matching"
+readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["torch>=2.5"]
+dependencies = ["torch>=2.5", "numpy>=1.24"]
+
+[project.optional-dependencies]
+report = ["matplotlib>=3.7"]
+
+[project.scripts]
+fct-train = "fct.train:main"
+fct-verify = "fct.verify:main"
+fct-report = "fct.report:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["fct", "fct.*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 

@@ -1,0 +1,110 @@
+{
+  "study": "Uniform-Euler finite-step gradient correctness: controlled synthetic ablation",
+  "status": "PASS",
+  "job_id": "7138497",
+  "started_utc": "2026-10-07T19:56:15Z",
+  "elapsed_verification_seconds": 18.31130852899969,
+  "structural_tests_passed": 21,
+  "exit_codes": {
+    "tests": 0,
+    "e0": 0,
+    "same_step": 0,
+    "reduced_step": 0,
+    "audit": 0,
+    "report": 0,
+    "job_id": "7138497"
+  },
+  "counts": {
+    "scalar": 30,
+    "nonlinear2d": 306,
+    "cpu_gpu_pairs": 36
+  },
+  "failed_full_fixtures": [],
+  "max_adjoint_absolute_error": 7.771561172376096e-16,
+  "max_full_fd_window_ratio": 0.032507846491612646,
+  "max_cpu_gpu_gradient_absolute_error": 4.440892098500626e-16,
+  "all_cpu_gpu_checks_passed": true,
+  "controls": {
+    "no_backbone_input": {
+      "applicable_fixtures": 120,
+      "detected_fixtures": 120,
+      "detected": true,
+      "example": "cpu:s0-nonzero-n2-k2-utility"
+    },
+    "last_step_only": {
+      "applicable_fixtures": 120,
+      "detected_fixtures": 120,
+      "detected": true,
+      "example": "cpu:s0-nonzero-n2-k2-utility"
+    },
+    "one_sided_kernel": {
+      "applicable_fixtures": 80,
+      "detected_fixtures": 80,
+      "detected": true,
+      "example": "cpu:s0-nonzero-n2-k2-matching"
+    },
+    "extra_ensemble_mean": {
+      "applicable_fixtures": 120,
+      "detected_fixtures": 120,
+      "detected": true,
+      "example": "cpu:s0-nonzero-n2-k2-utility"
+    }
+  },
+  "evidence_audit": {
+    "status": "PASS",
+    "raw_rows": 230850,
+    "direction_groups": 15390,
+    "method_groups": 1620,
+    "fixtures": 336,
+    "source_files_verified": 12,
+    "auditor_sha256": "bc2eeff6cc6fca45355ea490cc7f8712a7a3cc5c7f85aa98885557d9218c7ae8",
+    "raw_csv_sha256": "aacf078273edb9a9c3040b0f6f5811fc597d01cb28a854899e1a0aa3018644d2",
+    "summary_sha256": "dfb5e95d91fc9015a9bbd9e54fe11bd8443ff301f76da87dcd9fbe0b400e74a3",
+    "scope": "Saved evidence counts, numeric row arithmetic, consecutive-epsilon acceptance, config and source hashes; no rerun."
+  },
+  "environment": {
+    "architecture": "aarch64",
+    "python": "3.11.7 (main, Jun 17 2024, 15:39:30) [GCC 12.3.0]",
+    "numpy": "2.2.6",
+    "torch": "2.9.0+cu128",
+    "cuda_runtime": "12.8",
+    "gpu": "NVIDIA GH200 120GB",
+    "devices": [
+      "cpu",
+      "cuda"
+    ],
+    "dtype": "float64"
+  },
+  "source_sha256": {
+    "src/fct/__init__.py": "f8eb52ddb3f3850d3f382903cb57e7ef471ff8553775cc3e8964839d3bb07108",
+    "src/fct/audit_evidence.py": "bc2eeff6cc6fca45355ea490cc7f8712a7a3cc5c7f85aa98885557d9218c7ae8",
+    "src/fct/checkpoint.py": "b0740de22a7553aee239823bfe71f0a496480ce788b5b8b893929c922ef8fa71",
+    "src/fct/interfaces.py": "227c8b70d87cf42124754358dae3bf5987ce45d663c659a5b890f50f2efddf35",
+    "src/fct/objectives.py": "773f7b241e0931d889775573d31aa3dc9cf508bbb07fef0db2938e21d886f1cb",
+    "src/fct/report.py": "8719ecd62a62e5375fe6b67b6e524c7e4f91aba5c3c71d6e74d58bc58107bb51",
+    "src/fct/rollout.py": "9d2421aeb82147d9a7cc9e3bdd00097beb21ddc511b4d51d998b59bd4a3ffd5c",
+    "src/fct/synthetic.py": "3fe99df76276c609fba245156ba7fbdd69aa7c8e96f32a85d8f261f98da1054c",
+    "src/fct/train.py": "66bfef3af393748971b58ab5ceb5464f900a4e0192c77af6e51bef6b1954d7cd",
+    "src/fct/training.py": "1ff103a4b87eac359b967574d20551283447e983bb8ffa715ae25c936608fb32",
+    "src/fct/verification_cases.py": "1852506fb788514c7aa8581f1e861598ba888df43bd61876fe2d6dff297a576c",
+    "src/fct/verify.py": "d9246448c329cf442256e56be82fce77800bbeea8532fb3dce09b3f434b0c403"
+  },
+  "tested_input_sha256": {
+    "tests/test_canonical.py": "5c822bb6246a308aabd888b67fe98ccf64ec5e4185fd762f79da84f979ad2886",
+    "tests/test_reference.py": "fc109cdc1e88fc9da33a775cd9c6d72730235e191f29cd6c50f059453364315b",
+    "configs/gradient-correctness.json": "a1f7ae79767d52e280d69591bfdce58b9600561ff54c67065d44f2c27835c0e7",
+    "configs/synthetic-reduced-step.json": "06de154b803414a085d21135bfe2cf4e8d9cb328bb352426c466815e3866d63e",
+    "configs/synthetic-same-step.json": "9d71502a9f4e021aec130466819cc5abe95b216722c0f915ccfb719bbb1528bb"
+  },
+  "tested_wheel_sha256": "8935a03c3f9d43f41d60f8610f38b456fa734070aa439e159c041bfda58470a2",
+  "source_archive_sha256": "0af4ec16ef662b2251abbdc5c238fb176446de80a7f06b371b850e6e7a9dd465",
+  "claim_limit": "Correct differentiation of tested finite sample objectives; no population unbiasedness, convergence, or quality claim.",
+  "saved_verification_config_sha256": "c32e73ddd6d21d789f85ee5f4213b851193beccb64e4ce48ae6621a6d8e058c0",
+  "release_source_hash_check": {
+    "status": "PASS",
+    "package_files": 12,
+    "tests": 2,
+    "configs": 3,
+    "hash_basis": "Git file bytes; saved config hash refers to the run-generated config.json"
+  }
+}

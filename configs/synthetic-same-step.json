@@ -1,0 +1,13 @@
+{
+  "regime": "same_step",
+  "steps": 4,
+  "teacher_steps": 4,
+  "stages": [{"updates": 6, "utility_weight": 1.0}],
+  "adapter": "fct.synthetic:make_task",
+  "adapter_config": {"particles": 4, "targets": 2, "contexts": [-1.0, 1.0]},
+  "matching_weight": 1.0,
+  "lr": 0.001,
+  "dtype": "float32",
+  "device": "cpu",
+  "seed": 0
+}

@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bridge-optimization"
+version = "0.1.0"
+description = "FP32 step-residual corrective optimization and finite-step operator distillation"
+readme = "src/README.md"
+requires-python = ">=3.10"
+dependencies = ["torch>=2.5"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

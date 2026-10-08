@@ -4,8 +4,3 @@ __pycache__/
 build/
 dist/
 .venv/
-.DS_Store
-.pytest_cache/
-.ruff_cache/
-*.tmp
-/runs/
