@@ -3,9 +3,7 @@
 This repository implements the finite, uniform-Euler objective for a frozen
 generative backbone with a trainable **velocity correction**:
 
-\[
-x_{k+1}=x_k+\frac{1}{N}\left[v_0(x_k,k/N;c)+c_\phi(x_k,k/N,c)\right].
-\]
+$x_{k+1}=x_k+\frac{1}{N}\left[v_0(x_k,k/N;c)+c_\phi(x_k,k/N,c)\right].$
 
 Both velocities are evaluated at the current generated state. Training differentiates
 the full rollout, including the frozen backbone's derivatives with respect to its
