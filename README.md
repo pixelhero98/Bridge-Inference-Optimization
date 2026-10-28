@@ -21,10 +21,10 @@ asset, not an optimized baseline.
 | ImageNet-64 | EDM-64 | Core | Profiling adapters available; production pending |
 | ImageNet-256 | SiT-XL/2 | Core, first production campaign | Ten baseline runs: seed 0, 512 updates, FID-10K; completion requires audited artifacts |
 | Text-to-image | SD3.5-Medium and SANA-1.6B, each at 512 x 512 | Core, after ImageNet | Two separate backbone matrices; adapters and budgets unverified |
-| Text-to-video | Wan2.1-T2V-1.3B | Optional extension | Planned; feasibility and separate budget required |
+| Text-to-video | Wan2.1-T2V-1.3B, 480p target | Comparison finalized; optional launch subject to budget | OGO + all five baselines; separate 32-step primary and 16-step efficiency policies using uniform Euler (12 configurations/seed). Wan adapters, verification and profiling pending |
 
-The [T2V contract](docs/t2v-protocol.md) uses 32 steps as its primary setting and
-16 as its efficiency setting, with separate optimization at each horizon.
+The [finalized T2V contract](docs/t2v-protocol.md) specifies the five baseline
+identities, training transitions, backward depth and checks required before launch.
 
 Each non-synthetic task starts with exactly **five baselines**: **DRaFT-K,
 DDPO-IS, Flow-GRPO, lambda-Controlled GRPO, and offline trajectory-DPO based on
