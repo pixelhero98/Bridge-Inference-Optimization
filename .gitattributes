@@ -1,3 +1,5 @@
 * text=auto eol=lf
 *.png -text
-legacy/pre-canonical/** -text
+# These two frozen contracts are hashed by their exact bytes, including newlines.
+configs/ogo-profile.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+configs/imagenet256-baselines-512.json -text

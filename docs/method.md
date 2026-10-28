@@ -1,88 +1,73 @@
-# Canonical finite objective
+# Method and ImageNet adaptation contract
 
-The state belongs to the backbone's state space; context can contain a class,
-prompt, image, observation, or other task conditioning. The frozen adapter returns
-velocity in normalized generative time [0,1]. Set h=1/N and t_k=k/N. The only active
-operator is x_next=x+h*(v0(x,t,c)+c_phi(x,t,c)). Zero correction reproduces the
-frozen N-step sampler. Reduced-step inference still evaluates the frozen backbone.
+OGO is a generative policy optimization method. Its trainable policy is a
+corrective field; it maximizes reward with fixed-reference distributional
+regularization. The [experiment plan](experiment-plan.md) extends the scope to
+synthetic mechanisms, ImageNet and planned text-conditioned tasks. The concrete
+architecture, LPIPS objective and hyperparameters below describe the verified
+ImageNet adapters, not a universal reward or an implemented T2I/T2V adapter.
 
-For one context, x_i is a corrected endpoint from independent student noise z_i.
-Targets y_m are frozen teacher endpoints from independent noises eta_m conditional
-on that same context. The teacher uses N_T uniform Euler steps. Observed conditional
-data may replace teacher endpoints in a declared task adapter, independently of z_i.
+OGO optimizes a corrective field along a fixed backbone. Backbone, decoder and
+feature/reward parameters remain frozen; their input Jacobians are retained.
+The field is a six-block width-384 RoPE transformer with zero output initially.
+Its current-state velocity is multiplied by the Euler step exactly once.
 
-\[
-S_r=\frac{1}{2K(K-1)}\sum_{i\ne j}
-k_r(\Psi_r(x_i),\Psi_r(x_j))
--\frac{1}{KM}\sum_{i,m}k_r(\Psi_r(x_i),\Psi_r(y_m)),
-\qquad
-L_c=a_u\frac1K\sum_i U(x_i;c)+\lambda\sum_r\beta_rS_r.
-\]
+The loss is paired LPIPS plus conditional Euclidean-Laplace kernel matching in
+pixel/latent and normalized DINO spaces, with equal branch weights. Generated
+self-pairs are excluded; the target-only constant is omitted. Matching draws
+are independent of paired reward references. The target distribution is fixed.
 
-Average L_c equally across contexts; never pool pairs across contexts. Use K>=2
-when matching is active and M>=1 targets. Differentiate both generated kernel
-arguments. The generated ensemble factor occurs exactly once; gradient contributions
-are summed after the loss's reductions. Target-only constants are omitted, so the
-score need not be positive. No weight is normalized implicitly.
+## Backbone and stochastic-kernel adaptations
 
-U is a loss to minimize. A reward can use U=-R, or an explicitly specified smooth
-transform. A same-noise frozen utility baseline may be part of U, but is a separate
-input from the matching target. Nonlinear paired utility can depend on the coupling;
-it must not be described as purely a function of the student marginal distribution.
+Time increases from noise to data. EDM uses a=(1+80t)/81, b=80(1-t)/81,
+x_initial=(80/81)z and v=(D(x/a,b/a,c)-x)/(1-t). SiT uses its native velocity,
+CFG 1.5 on the official first three latent channels and VAE scale 0.18215.
 
-## Multiple spaces
+For a linear interpolant with a+b=1 and constant a', the ideal score is
+s=(a*v/a'-x)/b. Euler-Maruyama uses mean x+(v+g^2*s/2)/N, variance g^2/N,
+and g^2=gamma^2*b/a. At SiT's noise endpoint, the diffusion denominator uses
+the next grid value, following Flow-GRPO; the score is exactly -x. All trained
+transitions have positive variance. Exact marginal preservation requires an
+exact interpolant velocity and continuous-time integration; it is not claimed
+for finite grids or approximate models.
 
-Each feature branch supplies a fixed differentiable map, a symmetric kernel and a
-fixed weight. For a latent generator, examples include
-Psi_latent(x)=flatten(x) and Psi_DINO(x)=DINO(preprocess(decode(x))). Branches can
-have different feature dimensions and bandwidths. Generated decode/feature operations
-retain their input derivatives even though all associated parameters are frozen.
-Target features are computed without gradients. Multi-space feature matching does
-not guarantee equality of the original output distribution if the maps discard information.
+These are EDM/SiT adaptations, not reproductions of original Stable Diffusion
+experiments. DDPO/D3PO DDIM kernels become the agreed Gaussian Euler kernel;
+the policy objectives remain intact. Flow-GRPO's sign/time conversion is
+checked against its official descending-sigma expression. Mean-coordinate log
+probabilities follow the implementations: they produce surrogate ratios, not
+full joint-density ratios. Summed Gaussian densities are tested separately.
+Deterministic evaluation has no stochastic transition likelihood.
 
-The provided smooth Gaussian kernel uses exp(-||u-v||^2/(2*sigma^2)). Other symmetric
-kernels can implement the callable interface and require their own smoothness and
-gradient checks. Do not silently replace a distance, add a floor, or learn bandwidths.
-Kernel self-pairs are excluded before kernel evaluation. Distinct samples can still
-coincide; nonsmooth kernels need a separately documented derivative convention.
+## Optimization rules
 
-## Staging and pseudocode
+| Method | Trainable policy | Update |
+|---|---|---|
+| OGO | Corrective field | Full trajectory LPIPS and fixed-reference matching gradients |
+| DRaFT-K | Rank-8 linear/convolution LoRA | Full forward; last K=4 steps differentiated |
+| DDPO-IS | Rank-4 attention LoRA | Batch advantages; clipped surrogate; two replay passes |
+| Flow-GRPO | Rank-32 attention LoRA, scale 2 | Group advantages; clipped surrogate; Gaussian reference KL |
+| lambda-Controlled GRPO | Rank-32 attention LoRA, scale 2 | LambdaNorm-T and detached damp-only timestep weights |
+| Offline D3PO | Rank-4 attention LoRA | Fixed pairs; LPIPS labels; clipped reference ratios; per-transition DPO |
 
-Same-step: N=N_T, one joint stage. Reduced-step: N<N_T, one matching-only stage
-followed by one joint stage. Both are declared in the original configuration.
-Matching weight remains fixed and positive. An optional predeclared utility ramp
-uses local stage updates 1..ramp_updates and multiplies the utility loss externally.
-There is no online weight/bandwidth calibration in the core.
+Attention adapters cover fused QKV and output projections. Actual parameter
+counts, scopes and scales are recorded. Baselines are not forced into OGO's
+corrective field. DRaFT's K is backward depth, separate from inference steps.
 
-```python
-freeze(backbone, teacher, decoder, feature_encoders, utility_models)
-initialize_correction_with_zero_output()
-optimizer = AdamW(correction.parameters(), task_spec.optimizer)
-for update in declared_schedule:
-    optimizer.zero_grad()
-    a = schedule.utility_weight(update)
-    for context in batch_contexts:
-        z = independent_draws(role="student", context=context)
-        eta = independent_draws(role="matching-teacher", context=context)
-        y = frozen_uniform_euler(teacher, eta, N_T)
-        baseline = optional_frozen_utility_reference(z, context)
-        x = uniform_euler(backbone, correction, z, context, N)
-        loss = a * mean(utility(x, context, baseline))
-        loss += matching_weight * sum(
-            branch.weight * conditional_kernel_score(branch(x), branch(y))
-            for branch in feature_branches
-        )
-        (loss / number_of_contexts).backward()
-    optimizer.step()
-    checkpoint_at_declared_boundaries()
-```
+Lambda statistics separate mean-square normalized shift (centering) from that
+quantity divided by latent dimension (variance). Main-text equations 3.11-3.12
+use nu=epsilon^2, epsilon=.1, q=.99 and an explicit numerical floor. At zero
+shift the published surrogate equals exp(-nu/2); that behavior is retained.
+The damping statistic is averaged over each four-trajectory microbatch before
+gradient accumulation over 32 trajectories. This estimator batch size is an
+explicit adaptation, separate from the optimizer batch size.
 
-The implementation skips utility evaluation when a=0. Checkpoints preserve model,
-AdamW state, all framework RNG streams, adapter sampler state, cursor, update count,
-and stage schedule. Explicit resume restores the last committed update; failed
-attempt logs remain as evidence. Legacy displacement checkpoints are incompatible.
+Offline D3PO stores reference likelihoods at collection time. Ties have zero
+preference gradient. Timing uses fixed ordering and full-batch accumulation
+across every transition before each update.
 
-For a backbone defined in native time s=g(t), its adapter must implement the
-corresponding normalized-time velocity, including the derivative ds/dt, and verify
-against the declared frozen sampler. Nonuniform native grids must not be silently
-substituted for this uniform normalized-time operator.
+Sources: [DRaFT](https://arxiv.org/abs/2309.17400),
+[DDPO](https://github.com/kvablack/ddpo-pytorch),
+[Flow-GRPO](https://github.com/yifan123/flow_grpo),
+[lambda-Controlled GRPO](https://arxiv.org/abs/2609.22041),
+[D3PO](https://github.com/yk7333/d3po).

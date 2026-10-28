@@ -3,24 +3,28 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "finite-time-corrective-transport"
-version = "0.2.0"
-description = "Uniform-Euler corrective transport with conditional multi-space kernel matching"
+name = "ogo"
+version = "0.8.0"
+description = "Generative policy optimization with corrective velocity fields"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["torch>=2.5", "numpy>=1.24"]
 
 [project.optional-dependencies]
 report = ["matplotlib>=3.7"]
+imagenet = ["torchvision==0.24.0", "diffusers==0.35.1", "transformers==4.57.1", "huggingface_hub==0.35.3", "timm==1.0.20", "lpips==0.1.4", "Pillow==11.3.0", "safetensors==0.6.2", "requests>=2.31", "scipy>=1.10"]
 
 [project.scripts]
-fct-train = "fct.train:main"
-fct-verify = "fct.verify:main"
-fct-report = "fct.report:main"
+ogo-campaign = "ogo.campaign:main"
+ogo-study = "ogo.study:main"
+ogo-train = "ogo.train:main"
+ogo-verify = "ogo.verify:main"
+ogo-report = "ogo.report:main"
+ogo-verify-laplace = "ogo.verify_laplace:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["fct", "fct.*"]
+include = ["ogo", "ogo.*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

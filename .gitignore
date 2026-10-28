@@ -9,3 +9,12 @@ dist/
 .ruff_cache/
 *.tmp
 /runs/
+.env
+.env.*
+!.env.example
+/assets/
+/outputs/
+*.pt
+*.pth
+*.ckpt
+*.safetensors

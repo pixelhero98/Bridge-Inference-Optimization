@@ -1,0 +1,53 @@
+{
+  "experiment": "E0",
+  "historical": "../../docs/verification-results.json",
+  "gaussian_regression": {
+    "job_id": "7232297",
+    "status": "PASS",
+    "counts": {
+      "scalar": 30,
+      "nonlinear2d": 306,
+      "cpu_gpu_pairs": 36
+    },
+    "original_raw_csv_unchanged": true,
+    "raw_csv_sha256": "aacf078273edb9a9c3040b0f6f5811fc597d01cb28a854899e1a0aa3018644d2"
+  },
+  "laplace_runs": [
+    {
+      "status": "PASS",
+      "counts": {
+        "fixtures": 918,
+        "cpu_gpu_pairs": 108
+      },
+      "failed_full_fixtures": [],
+      "controls": {
+        "no_backbone_input": {
+          "applicable": 360,
+          "detected": 360
+        },
+        "last_step_only": {
+          "applicable": 360,
+          "detected": 360
+        },
+        "one_sided_kernel": {
+          "applicable": 240,
+          "detected": 240
+        },
+        "extra_ensemble_mean": {
+          "applicable": 360,
+          "detected": 360
+        }
+      },
+      "elapsed_seconds": 52.42863625602331,
+      "job_id": "7232297",
+      "adjoint_max_abs_error": 4.440892098500626e-16,
+      "worst_full_fd_window_ratio": 0.033973072088421825,
+      "raw_csv_sha256": "cfb1eb478e257499dcd1a61e349f49bbe366e8d160f8211a880c44919c7e0913",
+      "configuration": "configs/laplace-correctness.json"
+    }
+  ],
+  "pending": [
+    "population estimator bias/variance",
+    "conditional coverage"
+  ]
+}

@@ -1,66 +1,89 @@
-# Finite-time corrective transport
+# OGO: generative policy optimization
 
-This repository implements the finite, uniform-Euler objective for a frozen
-generative backbone with a trainable **velocity correction**:
+OGO optimizes a generative policy by learning a corrective velocity field along
+a frozen pretrained backbone. It maximizes task reward while regularizing the
+generated distribution toward a fixed reference distribution. Backbone, decoder
+and reward/feature parameters stay frozen; their input derivatives are retained.
 
-$x_{k+1}=x_k+\frac{1}{N}\left[v_0(x_k,k/N;c)+c_\phi(x_k,k/N,c)\right].$
+$$
+x_{k+1}=x_k+\frac{1}{N}\big[v_0(x_k,k/N;c)+u_\phi(x_k,k/N,c)\big].
+$$
 
-Both velocities are evaluated at the current generated state. Training differentiates
-the full rollout, including the frozen backbone's derivatives with respect to its
-input. Inference uses exactly the same operator. Only correction parameters train.
+Every evaluated policy uses **deterministic uniform Euler at 16 or 32 steps**.
+The high-step sampler defining a reference distribution is a separate frozen
+asset, not an optimized baseline.
 
-Two training regimes are supported:
+## Experiment scope
 
-- **Same step:** student and teacher use equal budgets; train utility plus matching.
-- **Reduced step:** use fewer student steps; train matching first, then add utility
-  while retaining matching, teacher identity, optimizer moments, RNG, and data cursor.
+| Task | Backbone | Scope | Implementation |
+|---|---|---|---|
+| Synthetic | Analytic distributions and small frozen dynamics | Core mechanism tests | Finite-gradient fixtures retained; broader optimization study planned |
+| ImageNet-64 | EDM-64 | Core | Profiling adapters available; production pending |
+| ImageNet-256 | SiT-XL/2 | Core, first production campaign | Ten baseline runs: seed 0, 512 updates, FID-10K; completion requires audited artifacts |
+| Text-to-image | SD3.5-Medium | Core, after ImageNet | Planned; adapters and resource budget unverified |
+| Text-to-video | Wan2.1-T2V-1.3B | Optional extension | Planned; feasibility and separate budget required |
 
-Matching is a sum of conditional kernel scores in fixed feature spaces. It can
-combine latent features with decoded-image perceptual features such as DINO, each
-with an explicit weight, kernel, bandwidth, and preprocessing specification.
-The core is not restricted to latent space. Large-backbone and DINO integrations
-are adapter work; no pretrained weights are included or downloaded automatically.
+Each non-synthetic task starts with exactly **five baselines**: **DRaFT-K,
+DDPO-IS, Flow-GRPO, lambda-Controlled GRPO, and offline trajectory-DPO based on
+D3PO**. OGO is the proposed method; frozen-backbone controls are untrained.
+There are 12 trained method/horizon configurations per task and seed, 36 for
+the three core image tasks, or 48 with video. The current ImageNet-256 campaign
+contains only its ten baseline configurations.
 
-## Install and run
+The [experiment plan](docs/experiment-plan.md) defines rewards, evaluation,
+adaptation gates and execution order. The [baseline rationale](docs/baselines.md)
+explains the common set and later candidates.
+[configs/experiment-plan.json](configs/experiment-plan.json) is a planning
+catalog, **not an executable campaign configuration**.
 
-Use Python 3.10+ and a platform-compatible PyTorch installation. For reports:
+## Install and inspect
 
 ```bash
-python -m pip install '.[report]'
-python -m fct.train --config configs/synthetic-same-step.json --output runs/same-step
-python -m fct.train --config configs/synthetic-reduced-step.json --output runs/reduced-step --stop-after 3
-python -m fct.train --config configs/synthetic-reduced-step.json --output runs/reduced-step --resume
-python -m unittest discover -s tests -v
-python -m fct.verify --config configs/gradient-correctness.json --output runs/e0 --devices cpu cuda
-python -m fct.audit_evidence --run runs/e0 --source /path/to/installed/fct
-python -m fct.report --run runs/e0 --figures runs/e0-figures
+pip install -e '.[imagenet]'
 ```
 
-Numerical workloads should run on allocated compute resources. Use `--devices cpu`
-for CPU-only verification; the complete declared acceptance run includes CUDA.
-The synthetic training configurations are smoke tests, not tuned experiment settings.
-New runs reject existing output directories. `--resume` requires an identical declared
-configuration, source, and adapter identity and trusted locally generated checkpoints.
-`--stop-after` specifies an absolute cumulative update boundary.
+Repository checks need only Python 3.11+ standard-library modules:
 
-## Method and extension points
+```bash
+python tools/check_repository.py
+python -B -m unittest discover -s tests -p test_metadata_records.py -v
+```
 
-Read [the formulation and pseudocode](docs/method.md),
-[the adapter contract](docs/adapters.md), [equation-to-code audit](docs/equation-to-code.md),
-and [experiment plan](docs/experiments.md).
+On an allocated compute node, retained synthetic fixtures run with:
 
-- `src/fct/`: canonical sampler, objectives, staged trainer, and verification tools.
-- `configs/`: immutable verification protocol and small training examples.
-- `tests/`: structural, gradient, multi-space, and resume checks.
-- `legacy/`: archived pre-canonical files with an inventory and source commit.
+```bash
+ogo-train --config configs/synthetic-same-step.json --output runs/synthetic
+```
 
-Superseded post-step residual and standalone-student implementations are not valid
-realizations of this canonical method. They are not installed, imported, or tested
-as active implementations. Their checkpoints are rejected rather than converted.
+These short four/eight-step examples check correctness; they are not the
+16/32-step scientific comparison. ImageNet profiling and production are separate:
 
-Both the original E0 finite-gradient reference and the installed canonical package
-passed their declared checks. The canonical run passed 21 structural tests, 336
-scalar/nonlinear fixtures, 36 CPU/GPU comparisons, and all four omission controls;
-see [verification records](docs/verification.md) for evidence and scope. Passing these tests supports differentiation of
-the tested finite objectives; it does not establish population unbiasedness,
-optimization convergence, or generation quality.
+```bash
+ogo-study verify --config configs/ogo-profile.json --assets ASSETS.json --output PROFILE
+ogo-study profile --config configs/ogo-profile.json --assets ASSETS.json --output PROFILE --deadline UNIX_TIME
+ogo-campaign verify --config configs/imagenet256-baselines-512.json --assets ASSETS.json --output CAMPAIGN --deadline UNIX_TIME
+```
+
+See the [profiling protocol](docs/profiling.md), [production campaign](docs/imagenet256-campaign.md)
+and [asset contract](docs/assets.md) before numerical execution. Full ImageNet
+commands require explicit pinned assets, source repositories, reference caches,
+an evaluator environment and an allocation. They do not download missing assets.
+T2I/T2V adapters are not implemented by these commands.
+
+## Source and evidence
+
+- `src/ogo/`: corrective policy, objectives, numerical fixtures, ImageNet adapters,
+  profiling and the separate production runner.
+- `configs/`: numerical/campaign contracts and the planning catalog.
+- `experiments/e0/`: historical numerical evidence with original identities.
+- `tests/`: regression checks; `tools/`: lightweight source/plan validation.
+
+The [method contract](docs/method.md) separates reward, matching and evaluation.
+The [verification policy](docs/verification.md) distinguishes historical receipts
+from checks of this source. See the [cleanup record](docs/cleanup.md) for retired
+experiments and the metadata-resume repair.
+
+Deployed releases remain immutable. A new package cannot replace an old run's
+source: resume binds source, configuration, assets and reference identities.
+No completed ImageNet quality comparison, T2I/T2V implementation or general
+convergence result is claimed here.

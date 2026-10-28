@@ -1,0 +1,14 @@
+name: Repository checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  source-and-metadata:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python tools/check_repository.py
+      - run: python -B -m unittest discover -s tests -p test_metadata_records.py -v

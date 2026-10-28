@@ -1,0 +1,94 @@
+{
+  "schema": "ogo-experiment-plan-v1",
+  "decision_date": "2026-10-28",
+  "purpose": "planning_only_not_an_executable_campaign",
+  "positioning": "generative_policy_optimization_with_corrective_velocity_field",
+  "common_baselines": ["draft_k", "ddpo_is", "flow_grpo", "lambda_grpo", "offline_d3po"],
+  "deployment": {
+    "solver": "deterministic_uniform_euler",
+    "steps": [16, 32],
+    "training_per_horizon": "separate_policy",
+    "shared_within_task": ["backbone_weights", "time_grid", "guidance", "resolution", "conditioning", "reward", "evaluation_cases"]
+  },
+  "tasks": [
+    {
+      "id": "synthetic",
+      "scope": "core",
+      "kind": "mechanism_study",
+      "backbone": "analytic_and_small_frozen_dynamics",
+      "status": "gradient_fixtures_available_optimization_study_planned",
+      "baselines": [],
+      "controls": ["frozen", "utility_only", "matching_only", "joint_ogo", "scalar_learning_rate", "small_problem_oracle"],
+      "production_config": null,
+      "budget_gpu_hours": null
+    },
+    {
+      "id": "imagenet64",
+      "scope": "core",
+      "kind": "policy_optimization",
+      "backbone": "EDM-64",
+      "status": "profile_adapter_available_production_pending",
+      "baselines": ["draft_k", "ddpo_is", "flow_grpo", "lambda_grpo", "offline_d3po"],
+      "reward": "paired_negative_lpips",
+      "optimizer_updates_planning_target": 512,
+      "production_config": null,
+      "budget_gpu_hours": null
+    },
+    {
+      "id": "imagenet256",
+      "scope": "core",
+      "kind": "policy_optimization",
+      "backbone": "SiT-XL/2",
+      "status": "baseline_campaign_contract_available_ogo_production_pending",
+      "baselines": ["draft_k", "ddpo_is", "flow_grpo", "lambda_grpo", "offline_d3po"],
+      "reward": "paired_negative_lpips",
+      "optimizer_updates": 512,
+      "seed": 0,
+      "classes": 1000,
+      "production_config": "configs/imagenet256-baselines-512.json",
+      "production_scope": "ten_baseline_configurations_only",
+      "budget_gpu_hours": 110,
+      "max_campaign_gpus": 2,
+      "storage_bytes_cap": 64000000000,
+      "evaluation": {"development_updates": [128, 256, 384], "development_samples": 2000, "final_update": 512, "final_generated_samples": 10000, "fid_reference_samples": 50000}
+    },
+    {
+      "id": "text_to_image",
+      "scope": "core",
+      "kind": "policy_optimization",
+      "backbone": "SD3.5-Medium",
+      "status": "planned_not_implemented",
+      "baselines": ["draft_k", "ddpo_is", "flow_grpo", "lambda_grpo", "offline_d3po"],
+      "reward": "frozen_differentiable_pickscore",
+      "resolution_planning_target": [512, 512],
+      "optimizer_updates_planning_target": 512,
+      "production_config": null,
+      "budget_gpu_hours": null,
+      "launch_gates": ["native_objective_and_adapter_parity", "reward_input_gradients", "manifest_role_separation", "full_matrix_profile", "frozen_executable_protocol", "separate_resource_budget"]
+    },
+    {
+      "id": "text_to_video",
+      "scope": "optional",
+      "kind": "policy_optimization",
+      "backbone": "Wan2.1-T2V-1.3B",
+      "status": "planned_not_implemented",
+      "baselines": ["draft_k", "ddpo_is", "flow_grpo", "lambda_grpo", "offline_d3po"],
+      "reward": "differentiable_video_reward_to_be_frozen_after_gradient_audit",
+      "resolution_planning_target": "480p",
+      "production_config": null,
+      "budget_gpu_hours": null,
+      "launch_gates": ["image_core_complete", "all_six_method_adapters_verified", "temporal_reward_input_gradients", "frozen_video_geometry", "full_matrix_profile", "separate_compute_and_storage_budget"]
+    }
+  ],
+  "counts_per_training_seed": {
+    "trained_configurations_per_nonsynthetic_task": 12,
+    "core_nonsynthetic_configurations": 36,
+    "including_optional_video": 48,
+    "excludes": ["frozen_controls", "ogo_ablations", "additional_rewards", "additional_training_seeds"]
+  },
+  "deferred_candidates": ["alignprop", "diffusion_nft", "diffusion_dpo", "vader", "dance_grpo", "video_dpo"],
+  "frozen_contract_sha256": {
+    "configs/ogo-profile.json": "5ab26aadd9f4c9c328b3fe9be233e7d34949b13567e204e7da9157988ebe415e",
+    "configs/imagenet256-baselines-512.json": "dd54d29d54d1ceed2f900b24a9976fc1a5b3c27794e95bde712e6f6d87185a19"
+  }
+}

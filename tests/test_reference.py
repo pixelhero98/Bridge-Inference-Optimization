@@ -5,10 +5,10 @@ import unittest
 import numpy as np
 import torch
 
-from fct.verification_cases import (CONTROLS, autograd_gradient, backbone, context_components,
+from ogo.verification_cases import (CONTROLS, autograd_gradient, backbone, context_components,
                       discrete_adjoint, frozen_rollout, loop_objective, objective,
                       rollout, terminal_covector, terminal_objective)
-from fct.verify import close, stable_window
+from ogo.verify import close, stable_window
 
 
 class ReferenceTests(unittest.TestCase):

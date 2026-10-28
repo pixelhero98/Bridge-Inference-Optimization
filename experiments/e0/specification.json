@@ -1,0 +1,10 @@
+{
+  "experiment": "E0",
+  "historical_gaussian": "../../configs/gradient-correctness.json",
+  "original_evidence": "../../docs/verification-results.json",
+  "status": "original finite-step, canonical Gaussian regression, and Laplace mixture regression complete; population and coverage studies pending",
+  "pending": [
+    "population estimator bias/variance",
+    "conditional coverage"
+  ]
+}

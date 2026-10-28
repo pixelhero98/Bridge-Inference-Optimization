@@ -9,16 +9,16 @@ import numpy as np
 import torch
 from torch import nn
 
-from fct.checkpoint import load_checkpoint, rng_state
-from fct.objectives import FeatureKernel, GaussianKernel, conditional_loss, kernel_score
-from fct.rollout import frozen_rollout, uniform_euler
-from fct.synthetic import SyntheticTask
-from fct.training import Stage, Trainer, TrainingConfig
+from ogo.checkpoint import load_checkpoint, rng_state
+from ogo.objectives import FeatureKernel, GaussianKernel, conditional_loss, kernel_score
+from ogo.rollout import frozen_rollout, uniform_euler
+from ogo.synthetic import SyntheticTask
+from ogo.training import Stage, Trainer, TrainingConfig
 
 
 def config(**changes):
     values = dict(regime="reduced_step", steps=2, teacher_steps=8,
-                  stages=(Stage(3, 0.), Stage(3, 1., 2)), adapter="fct.synthetic:make_task",
+                  stages=(Stage(3, 0.), Stage(3, 1., 2)), adapter="ogo.synthetic:make_task",
                   adapter_config={"particles": 4, "targets": 2, "paired_baseline": True},
                   lr=1e-3, dtype="float64", device="cpu", seed=17)
     values.update(changes)
