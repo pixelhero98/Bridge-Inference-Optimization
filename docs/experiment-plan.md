@@ -161,6 +161,11 @@ to cover every current alignment algorithm.
 
 ## T2V: optional and budget gated
 
+The [T2V comparison contract](t2v-protocol.md) finalizes the common five baselines
+with **32 uniform Euler steps as primary** and **16 as the efficiency setting**.
+Train each horizon separately: 12 configurations including OGO per seed. The
+frozen-backbone horizon checks and Wan adaptation/profile gates precede launch.
+
 Start with [Wan2.1-T2V-1.3B](https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B).
 Freeze width/height, frame count, FPS, duration, latent layout, decoder chunking,
 time map and guidance together. Initial 480p is a planning target, not a verified

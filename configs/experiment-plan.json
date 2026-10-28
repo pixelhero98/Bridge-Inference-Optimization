@@ -89,13 +89,19 @@
       "scope": "optional",
       "kind": "policy_optimization",
       "backbone": "Wan2.1-T2V-1.3B",
+      "comparison_contract": "docs/t2v-protocol.md",
+      "primary_steps": 32,
+      "efficiency_steps": 16,
+      "optimization_horizons": [16, 32],
+      "rollout_steps_match_deployment_horizon": true,
+      "draft_backward_steps": 4,
       "status": "planned_not_implemented",
       "baselines": ["draft_k", "ddpo_is", "flow_grpo", "lambda_grpo", "offline_d3po"],
       "reward": "differentiable_video_reward_to_be_frozen_after_gradient_audit",
       "resolution_planning_target": "480p",
       "production_config": null,
       "budget_gpu_hours": null,
-      "launch_gates": ["image_core_complete", "all_six_method_adapters_verified", "temporal_reward_input_gradients", "frozen_video_geometry", "full_matrix_profile", "separate_compute_and_storage_budget"]
+      "launch_gates": ["image_core_complete", "frozen_backbone_uniform_euler_16_32_audit", "all_six_method_adapters_verified", "temporal_reward_input_gradients", "frozen_video_geometry", "full_matrix_profile", "separate_compute_and_storage_budget"]
     }
   ],
   "counts_per_training_seed": {

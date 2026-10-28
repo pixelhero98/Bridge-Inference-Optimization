@@ -49,6 +49,13 @@ def check_plan():
     require(all(t["resolution_planning_target"] == [512, 512] for t in t2i), "T2I resolution changed")
     sana = next(t for t in t2i if t["id"] == "text_to_image_sana")
     require(sana["backbone"] == "SANA-1.6B" and sana["checkpoint"] == "Efficient-Large-Model/Sana_1600M_512px_diffusers", "Selected SANA variant changed")
+    video = next(t for t in tasks if t["id"] == "text_to_video")
+    require(video["primary_steps"] == 32 and video["efficiency_steps"] == 16
+            and video["optimization_horizons"] == plan["deployment"]["steps"]
+            and video["rollout_steps_match_deployment_horizon"] is True
+            and video["draft_backward_steps"] == 4, "T2V optimization horizons changed")
+    require((ROOT / video["comparison_contract"]).is_file()
+            and "frozen_backbone_uniform_euler_16_32_audit" in video["launch_gates"], "T2V preflight contract missing")
     per_backbone = (1 + len(BASELINES)) * len(plan["deployment"]["steps"])
     counts = plan["counts_per_training_seed"]
     require(counts["trained_configurations_per_backbone"] == per_backbone, "Per-backbone count mismatch")

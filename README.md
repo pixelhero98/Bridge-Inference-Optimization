@@ -23,6 +23,9 @@ asset, not an optimized baseline.
 | Text-to-image | SD3.5-Medium and SANA-1.6B, each at 512 x 512 | Core, after ImageNet | Two separate backbone matrices; adapters and budgets unverified |
 | Text-to-video | Wan2.1-T2V-1.3B | Optional extension | Planned; feasibility and separate budget required |
 
+The [T2V contract](docs/t2v-protocol.md) uses 32 steps as its primary setting and
+16 as its efficiency setting, with separate optimization at each horizon.
+
 Each non-synthetic task starts with exactly **five baselines**: **DRaFT-K,
 DDPO-IS, Flow-GRPO, lambda-Controlled GRPO, and offline trajectory-DPO based on
 D3PO**. OGO is the proposed method; frozen-backbone controls are untrained.

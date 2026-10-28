@@ -2,6 +2,8 @@
 
 The same initial set applies to ImageNet-64, ImageNet-256, T2I and optional T2V.
 For T2I, both SD3.5-Medium and SANA-1.6B receive the complete set independently.
+The [T2V contract](t2v-protocol.md) fixes the same five at separate 16/32-step
+optimization horizons, with 32 steps as the primary video setting.
 It preserves the existing ImageNet protocol and enables a consistent cross-task
 comparison. This is a selection of optimization mechanisms, not a claim that
 these are the five best-performing methods on every benchmark.
