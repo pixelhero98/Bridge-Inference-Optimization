@@ -1,5 +1,5 @@
 {
-  "schema": "ogo-experiment-plan-v1",
+  "schema": "ogo-experiment-plan-v2",
   "decision_date": "2026-10-28",
   "purpose": "planning_only_not_an_executable_campaign",
   "positioning": "generative_policy_optimization_with_corrective_velocity_field",
@@ -8,7 +8,7 @@
     "solver": "deterministic_uniform_euler",
     "steps": [16, 32],
     "training_per_horizon": "separate_policy",
-    "shared_within_task": ["backbone_weights", "time_grid", "guidance", "resolution", "conditioning", "reward", "evaluation_cases"]
+    "shared_within_task_backbone": ["backbone_weights", "time_grid", "guidance", "resolution", "conditioning", "reward", "evaluation_cases"]
   },
   "tasks": [
     {
@@ -53,10 +53,12 @@
       "evaluation": {"development_updates": [128, 256, 384], "development_samples": 2000, "final_update": 512, "final_generated_samples": 10000, "fid_reference_samples": 50000}
     },
     {
-      "id": "text_to_image",
+      "id": "text_to_image_sd35",
+      "task": "text_to_image",
       "scope": "core",
       "kind": "policy_optimization",
       "backbone": "SD3.5-Medium",
+      "checkpoint": "stabilityai/stable-diffusion-3.5-medium",
       "status": "planned_not_implemented",
       "baselines": ["draft_k", "ddpo_is", "flow_grpo", "lambda_grpo", "offline_d3po"],
       "reward": "frozen_differentiable_pickscore",
@@ -65,6 +67,22 @@
       "production_config": null,
       "budget_gpu_hours": null,
       "launch_gates": ["native_objective_and_adapter_parity", "reward_input_gradients", "manifest_role_separation", "full_matrix_profile", "frozen_executable_protocol", "separate_resource_budget"]
+    },
+    {
+      "id": "text_to_image_sana",
+      "task": "text_to_image",
+      "scope": "core",
+      "kind": "policy_optimization",
+      "backbone": "SANA-1.6B",
+      "checkpoint": "Efficient-Large-Model/Sana_1600M_512px_diffusers",
+      "status": "planned_not_implemented",
+      "baselines": ["draft_k", "ddpo_is", "flow_grpo", "lambda_grpo", "offline_d3po"],
+      "reward": "frozen_differentiable_pickscore",
+      "resolution_planning_target": [512, 512],
+      "optimizer_updates_planning_target": 512,
+      "production_config": null,
+      "budget_gpu_hours": null,
+      "launch_gates": ["checkpoint_revision_and_asset_hashes", "linear_attention_lora_coverage", "gemma_conditioning", "dc_ae_geometry_and_input_gradients", "flow_time_and_euler_parity", "native_objective_and_adapter_parity", "stochastic_likelihoods", "reward_input_gradients", "manifest_role_separation", "full_matrix_profile", "frozen_executable_protocol", "separate_resource_budget"]
     },
     {
       "id": "text_to_video",
@@ -81,9 +99,10 @@
     }
   ],
   "counts_per_training_seed": {
-    "trained_configurations_per_nonsynthetic_task": 12,
-    "core_nonsynthetic_configurations": 36,
-    "including_optional_video": 48,
+    "trained_configurations_per_backbone": 12,
+    "text_to_image_configurations": 24,
+    "core_nonsynthetic_configurations": 48,
+    "including_optional_video": 60,
     "excludes": ["frozen_controls", "ogo_ablations", "additional_rewards", "additional_training_seeds"]
   },
   "deferred_candidates": ["alignprop", "diffusion_nft", "diffusion_dpo", "vader", "dance_grpo", "video_dpo"],

@@ -20,14 +20,14 @@ asset, not an optimized baseline.
 | Synthetic | Analytic distributions and small frozen dynamics | Core mechanism tests | Finite-gradient fixtures retained; broader optimization study planned |
 | ImageNet-64 | EDM-64 | Core | Profiling adapters available; production pending |
 | ImageNet-256 | SiT-XL/2 | Core, first production campaign | Ten baseline runs: seed 0, 512 updates, FID-10K; completion requires audited artifacts |
-| Text-to-image | SD3.5-Medium | Core, after ImageNet | Planned; adapters and resource budget unverified |
+| Text-to-image | SD3.5-Medium and SANA-1.6B, each at 512 x 512 | Core, after ImageNet | Two separate backbone matrices; adapters and budgets unverified |
 | Text-to-video | Wan2.1-T2V-1.3B | Optional extension | Planned; feasibility and separate budget required |
 
 Each non-synthetic task starts with exactly **five baselines**: **DRaFT-K,
 DDPO-IS, Flow-GRPO, lambda-Controlled GRPO, and offline trajectory-DPO based on
 D3PO**. OGO is the proposed method; frozen-backbone controls are untrained.
-There are 12 trained method/horizon configurations per task and seed, 36 for
-the three core image tasks, or 48 with video. The current ImageNet-256 campaign
+There are 12 trained method/horizon configurations per backbone and seed: 24
+for T2I, 48 across the four core image backbones, or 60 with video. The current ImageNet-256 campaign
 contains only its ten baseline configurations.
 
 The [experiment plan](docs/experiment-plan.md) defines rewards, evaluation,

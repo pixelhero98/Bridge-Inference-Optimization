@@ -1,6 +1,7 @@
 # Initial five baselines
 
 The same initial set applies to ImageNet-64, ImageNet-256, T2I and optional T2V.
+For T2I, both SD3.5-Medium and SANA-1.6B receive the complete set independently.
 It preserves the existing ImageNet protocol and enables a consistent cross-task
 comparison. This is a selection of optimization mechanisms, not a claim that
 these are the five best-performing methods on every benchmark.
@@ -29,11 +30,12 @@ adaptations, not full reproductions of the original experimental pipeline.
 | EDM-64 | Denoiser-to-velocity/time conversion, pixel stochastic kernel, frozen Heun reference and paired reward |
 | SiT-256 | Latent velocity, CFG channels, VAE scale, latent likelihoods, decoded reward and merged-LoRA parity |
 | SD3.5 | Prompt/pooled conditioning, rectified-flow time, CFG, attention adapters, VAE reward gradients and positive-variance kernels |
+| SANA-1.6B | Gemma conditioning, linear-attention LoRA targets, DC-AE latent/decoder geometry, flow sign/time, uniform Euler parity and stochastic likelihoods |
 | Wan | Video latent layout, temporal decoder/reward gradients, conditioning, kernels, memory and trajectory shards |
 
 Current ImageNet settings are in [method.md](method.md) and frozen by
 `configs/ogo-profile.json`. New backbones need their own pinned implementation
-and loss/gradient checks; SiT verification does not certify SD3.5 or Wan. Use
+and loss/gradient checks; SiT verification does not certify SD3.5, SANA or Wan. Use
 the same scalar reward and data access within a task. Disclose parameter counts,
 replay and deviations from source. Do not force every baseline into OGO's field.
 

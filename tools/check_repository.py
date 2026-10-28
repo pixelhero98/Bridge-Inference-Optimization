@@ -24,13 +24,13 @@ def read_json(path):
 
 def check_plan():
     plan = read_json(ROOT / "configs/experiment-plan.json")
-    require(plan["schema"] == "ogo-experiment-plan-v1", "Wrong planning schema")
+    require(plan["schema"] == "ogo-experiment-plan-v2", "Wrong planning schema")
     require(plan["purpose"] == "planning_only_not_an_executable_campaign", "Plan must not be executable")
     require(tuple(plan["common_baselines"]) == BASELINES, "Common five changed")
     require(plan["deployment"]["steps"] == [16, 32], "Deployment horizons changed")
     require(plan["deployment"]["solver"] == "deterministic_uniform_euler", "Deployment solver changed")
     tasks = plan["tasks"]
-    expected_ids = {"synthetic", "imagenet64", "imagenet256", "text_to_image", "text_to_video"}
+    expected_ids = {"synthetic", "imagenet64", "imagenet256", "text_to_image_sd35", "text_to_image_sana", "text_to_video"}
     require(len(tasks) == len(expected_ids) and {t["id"] for t in tasks} == expected_ids, "Task coverage changed")
     for task in tasks:
         if task["kind"] == "policy_optimization":
@@ -40,15 +40,21 @@ def check_plan():
         require(task["scope"] == ("optional" if task["id"] == "text_to_video" else "core"), "Core/optional scope changed")
         if task["production_config"] is not None:
             require(task["id"] == "imagenet256" and (ROOT / task["production_config"]).is_file(), "Unsupported production task")
-        if task["id"] in ("text_to_image", "text_to_video"):
+        if task.get("task") == "text_to_image" or task["id"] == "text_to_video":
             require(task["status"] == "planned_not_implemented" and task["budget_gpu_hours"] is None
                     and task["production_config"] is None and task["launch_gates"], "Planned task cannot bypass launch gates")
     policy_tasks = [t for t in tasks if t["kind"] == "policy_optimization"]
-    per_task = (1 + len(BASELINES)) * len(plan["deployment"]["steps"])
+    t2i = [t for t in tasks if t.get("task") == "text_to_image"]
+    require({t["id"] for t in t2i} == {"text_to_image_sd35", "text_to_image_sana"}, "T2I backbone coverage changed")
+    require(all(t["resolution_planning_target"] == [512, 512] for t in t2i), "T2I resolution changed")
+    sana = next(t for t in t2i if t["id"] == "text_to_image_sana")
+    require(sana["backbone"] == "SANA-1.6B" and sana["checkpoint"] == "Efficient-Large-Model/Sana_1600M_512px_diffusers", "Selected SANA variant changed")
+    per_backbone = (1 + len(BASELINES)) * len(plan["deployment"]["steps"])
     counts = plan["counts_per_training_seed"]
-    require(counts["trained_configurations_per_nonsynthetic_task"] == per_task, "Per-task count mismatch")
-    require(counts["core_nonsynthetic_configurations"] == per_task * sum(t["scope"] == "core" for t in policy_tasks), "Core count mismatch")
-    require(counts["including_optional_video"] == per_task * len(policy_tasks), "Optional count mismatch")
+    require(counts["trained_configurations_per_backbone"] == per_backbone, "Per-backbone count mismatch")
+    require(counts["text_to_image_configurations"] == per_backbone * len(t2i), "T2I count mismatch")
+    require(counts["core_nonsynthetic_configurations"] == per_backbone * sum(t["scope"] == "core" for t in policy_tasks), "Core count mismatch")
+    require(counts["including_optional_video"] == per_backbone * len(policy_tasks), "Optional count mismatch")
     for name, expected in plan["frozen_contract_sha256"].items():
         require(hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected, f"Frozen contract bytes changed: {name}")
     campaign = read_json(ROOT / "configs/imagenet256-baselines-512.json")

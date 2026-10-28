@@ -13,6 +13,7 @@ Shorter sampling is a deployment constraint, not a distillation experiment.
 | ImageNet-64 | EDM-64 | OGO + common five | Uniform Euler 16, 32 | Profiled; production pending |
 | ImageNet-256 | SiT-XL/2 | OGO + common five | Uniform Euler 16, 32 | Ten-baseline campaign contract frozen |
 | T2I | SD3.5-Medium, initially 512 x 512 | OGO + common five, task adapted | Uniform Euler 16, 32 | Core planned task |
+| T2I | SANA-1.6B, 512 x 512 | OGO + common five, task adapted | Uniform Euler 16, 32 | Core planned task |
 | T2V | Wan2.1-T2V-1.3B, initially 480p | OGO + common five, task adapted | Uniform Euler 16, 32 | Optional; launch gate closed |
 
 The five are **DRaFT-K, DDPO-IS, Flow-GRPO, lambda-Controlled GRPO, and offline
@@ -21,8 +22,10 @@ Backbone controls and OGO ablations are separate from the five. Adaptation chang
 the backbone interface, decoder, conditioning, stochastic kernel and reward,
 without silently replacing a baseline objective. See [baseline rationale](baselines.md).
 
-There are 12 main trained configurations per task and training seed: 36 across
-the three core image tasks, or 48 with T2V. Counts exclude controls, ablations,
+There are 12 main trained configurations per backbone and training seed: 24 for
+the two T2I backbones, 48 across all four core image backbones, or 60 with T2V.
+Each T2I backbone gets the full set of five baselines plus OGO; the five are not
+split between backbones. Counts exclude controls, ablations,
 replications and additional reward campaigns. They are scope counts, not compute
 allocations. No 64-step deployment arm, I2V, standalone one-step generator or
 distillation campaign is active.
@@ -42,7 +45,8 @@ conditional on the same class or prompt. A soft discrepancy penalty does not
 guarantee a hard drift bound. Constrained synthetic variants require explicit
 constraint checks and are labeled separately.
 
-All methods start from the same pinned backbone, use the same task reward and
+Within each backbone comparison, all methods start from the same pinned weights,
+use the same task reward and
 fixed train/development/test identities, and train separately for each horizon.
 Keep native update rules and parameterizations; OGO retains its corrective field.
 Freeze each new task's optimizer, adapter rank/scope, precision, guidance,
@@ -50,7 +54,7 @@ normalization, time map and clipping before scientific runs. Transfer of a SiT
 learning rate to another architecture requires a declared calibration protocol.
 
 Uniform Euler uses a uniform grid in the declared integration variable; disclose
-any nonlinear time/sigma mapping. Within each task all methods share deployment
+any nonlinear time/sigma mapping. Within each backbone all methods share deployment
 grid, guidance, resolution and conditioning. Use positive-variance stochastic
 transitions where training likelihoods require them. Verify density conventions,
 endpoint handling and reference likelihoods. Deterministic Euler has no Gaussian
@@ -111,8 +115,11 @@ separately budgeted training replications.
 
 ## T2I: optimization beyond reference fidelity
 
-Use [SD3.5-Medium](https://huggingface.co/stabilityai/stable-diffusion-3.5-medium)
-at an initial fixed 512 x 512 resolution. Primary utility is a frozen,
+Use two separate 512 x 512 backbone comparisons:
+[SD3.5-Medium](https://huggingface.co/stabilityai/stable-diffusion-3.5-medium) and
+[SANA-1.6B](https://huggingface.co/Efficient-Large-Model/Sana_1600M_512px_diffusers).
+The requested SANA-Medium denotes the base 1.6B checkpoint here; the exact asset
+revision and hashes must be frozen before execution. Primary utility is a frozen,
 differentiable PickScore scalar for the image/prompt pair. Pin its model,
 preprocessing and scalar convention; calibrate affine normalization on
 training-only reference outputs. Use the same scalar for online rewards and
@@ -124,13 +131,29 @@ styles. Deduplicate prompts across train/development/test and exclude benchmark
 test prompts from training. Match references with independent noise for the
 same prompt; unrelated prompts are not interchangeable conditional targets.
 
+Share the prompt-role manifests and reward/evaluation definitions across the two
+T2I backbones. Build and calibrate separate frozen-reference pools for each
+backbone; latent tensors, decoder scales and reference identities are not
+interchangeable. Compare policy gains against each backbone's own frozen control.
+Guidance, precision and time maps are fixed within a backbone matrix and disclosed
+across backbones, rather than silently inherited from SD3.5.
+
+SANA needs a dedicated adapter for its linear-attention transformer, Gemma text
+conditioning and DC-AE latent/decoder geometry. Verify correction input shapes,
+LoRA target coverage, flow sign/time conversion, uniform-Euler zero-correction
+parity, decoder/reward input gradients and stochastic transition likelihoods
+before all five objectives are accepted. Its released sampler is not assumed to
+be the uniform-Euler policy used in this study. The [official model card](https://huggingface.co/Efficient-Large-Model/Sana_1600M_512px_diffusers)
+and [model zoo](https://nvlabs.github.io/Sana/docs/model_zoo/) identify the selected
+base model; this plan does not use SANA-Sprint or add a distillation comparator.
+
 Evaluate full GenEval, disjoint held-out prompts, optimized reward, independent
 preference/semantic scorers and within-prompt diversity. Report prompt-clustered
 uncertainty; multiple samples from one prompt are not independent prompts.
 Blind human preference is separately budgeted. OCR or other nondifferentiable
 rewards can be held-out metrics; a surrogate gradient changes the training task.
 
-Profile all 12 combinations before fixing update counts, prompt counts and
+Profile all 12 combinations per backbone (24 for T2I) before fixing update counts, prompt counts and
 evaluation multiplicities. Use 512 updates as a pilot planning target, not a
 convergence assertion. T2I needs a separate budget; ImageNet's 110-hour allowance
 does not extend to it. The shared five are the initial comparison, not a claim
@@ -164,7 +187,8 @@ it, shorten clips for only one method, or rename a replacement as that baseline.
 
 1. Preserve and finish the existing ImageNet-256 baseline protocol and audits.
 2. Finalize synthetic mechanisms and validate/price OGO-256 and ImageNet-64.
-3. Implement, validate and profile T2I; freeze a new executable protocol and cap.
+3. Implement, validate and profile both T2I backbones; freeze their executable
+   protocols and measured resource caps before either scientific campaign.
 4. Consider T2V after the image core and its separate feasibility gate.
 
 Freeze source/config/model hashes, seeds and role manifests, rewards/features,
